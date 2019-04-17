@@ -1,5 +1,10 @@
 # samo-js-client
 
+[![npm][npm-image]][npm-url]
+
+[npm-image]: https://img.shields.io/npm/v/samo-js-client.svg?style=flat-square
+[npm-url]: https://www.npmjs.com/package/samo-js-client
+
 js client for [samo](https://github.com/benitogf/samo) though the service should be usable with the [standard websocket](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) and [http/fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch) request method, this client provides encode/decode methods and a reconnecting websocket abstraction, more of a template than a library.
 
 ## how to
