@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>samo - test</title>
+  <script type="text/javascript" src="/bundle.js"></script>
+  <script type="text/javascript">
+    const samo = new Samo('localhost:8800/mo/boxes')
+    samo.onopen = async (evt) => {
+      samo.set({ name: "a box" }, "1")
+      const boxID = await samo.rpost('mo', 'boxes', {
+        name: "other box"
+      }, "other")
+      document.write(boxID === "other" ? 0 : 1)
+      const moreBoxID = await samo.rpost('sa', 'boxes/9', {
+        name: "box#9"
+      })
+      document.write(moreBoxID === "9" ? 0 : 1)
+      const boxNumerNine = await samo.rget('sa', 'boxes/9')
+      document.write(boxNumerNine.index === "9" ? 0 : 1)
+      const allTheBoxes = await samo.rget('mo', 'boxes')
+      document.write(allTheBoxes.length === 3 ? 0 : 1)
+      samo.del(moreBoxID)
+      samo.del('1')
+      await samo.rdel('boxes/' + boxID)
+      const allTheBoxesAfter = await samo.rget('mo', 'boxes')
+      document.write(allTheBoxesAfter.length === 0 ? 0 : 1)
+      let wait = document.createElement('div')
+      wait.className = 'wait'
+      document.querySelector('body').appendChild(wait)
+    }
+  </script>
+</head>
+
+<body>
+</body>
+
+</html>

@@ -1,15 +1,27 @@
 {
   "name": "samo-js-client",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "js client for samo",
   "main": "Samo.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "rollup -c",
+    "test": "jasmine"
   },
-  "author": "",
+  "author": {
+    "name": "Benito Gomez",
+    "email": "benitogf@outlook.com"
+  },
+  "homepage": "https://github.com/benitogf/samo-js-client",
   "license": "MIT",
   "dependencies": {
     "js-base64": "^2.5.1",
-    "ky": "^0.7.0"
+    "ky": "^0.9.1"
+  },
+  "devDependencies": {
+    "jasmine": "^3.4.0",
+    "puppeteer": "^1.14.0",
+    "rollup": "^1.10.0",
+    "rollup-plugin-commonjs": "^9.3.4",
+    "rollup-plugin-node-resolve": "^4.2.3"
   }
 }

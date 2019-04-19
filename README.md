@@ -1,5 +1,11 @@
 # samo-js-client
 
+[![Build Status][build-image]][build-url]
+
+
+[build-url]: https://travis-ci.com/benitogf/samo-js-client
+[build-image]: https://api.travis-ci.com/benitogf/samo-js-client.svg?branch=master&style=flat-square
+
 [![npm][npm-image]][npm-url]
 
 [npm-image]: https://img.shields.io/npm/v/samo-js-client.svg?style=flat-square
