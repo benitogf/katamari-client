@@ -27,7 +27,7 @@ before_script:
   - npm run build
 
 script:
-  - nohup go run main.go
-  - nohup http-server
+  - nohup go run main.go &
+  - nohup http-server &
   - sleep 3
   - npm test
