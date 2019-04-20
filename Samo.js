@@ -75,7 +75,11 @@ const _samo = {
     }
 
     this.ws.onmessage = (event) => {
-      this.onmessage(this.decode(event))
+      if (event.currentTarget.url.replace(this.wsProtocol + this.domain + '/', '') === 'time') {
+        this.onmessage(this.parseTime(event))
+      } else {
+        this.onmessage(this.decode(event))
+      }
     }
 
     this.ws.onerror = this.onerror
