@@ -1,7 +1,7 @@
 // https://github.com/daviddoran/typescript-reconnecting-websocket/blob/master/reconnecting-websocket.ts
 import { Base64 } from 'js-base64'
 import ky from 'ky'
-const Samo = {
+const _samo = {
   // Time to wait before attempting reconnect (after close)
   reconnectInterval: 1000,
   // Time to wait for WebSocket to open (before aborting and retrying)
@@ -31,63 +31,54 @@ const Samo = {
   onopen: (ev) => { },
   onclose: (ev) => { },
   onconnecting: (ev) => { },
-  onmessage: (ev) => { },
+  onmessage: (data) => { },
   onerror: (ev) => { },
 
   connect(reconnectAttempt) {
-    this.ws = new WebSocket(this.wsUrl, this.protocols);
+    this.ws = new WebSocket(this.wsUrl, this.protocols)
 
-    this.onconnecting();
+    this.onconnecting()
 
-    var localWs = this.ws;
-    var timeout = setTimeout(
+    const localWs = this.ws
+    const timeout = setTimeout(
       () => {
-        this.timedOut = true;
-        localWs.close();
-        this.timedOut = false;
+        this.timedOut = true
+        localWs.close()
+        this.timedOut = false
       },
-      this.timeoutInterval);
+      this.timeoutInterval)
 
     this.ws.onopen = (event) => {
-      clearTimeout(timeout);
-      this.readyState = WebSocket.OPEN;
-      reconnectAttempt = false;
-      this.onopen(event);
-    };
+      clearTimeout(timeout)
+      this.readyState = WebSocket.OPEN
+      reconnectAttempt = false
+      this.onopen(event)
+    }
 
     this.ws.onclose = (event) => {
-      clearTimeout(timeout);
-      // this.ws = null;
+      clearTimeout(timeout)
       if (this.forcedClose) {
-        this.readyState = WebSocket.CLOSED;
-        this.onclose(event);
+        this.readyState = WebSocket.CLOSED
+        this.onclose(event)
       } else {
-        this.readyState = WebSocket.CONNECTING;
-        this.onconnecting();
+        this.readyState = WebSocket.CONNECTING
+        this.onconnecting()
         if (!reconnectAttempt && !this.timedOut) {
-          this.onclose(event);
+          this.onclose(event)
         }
         setTimeout(
           () => {
-            this.connect(true);
+            this.connect(true)
           },
-          this.reconnectInterval);
+          this.reconnectInterval)
       }
-    };
-    this.ws.onmessage = (event) => {
-      this.onmessage(event);
-    };
-    this.ws.onerror = (event) => {
-      this.onerror(event);
-    };
-  },
-
-  send(data) {
-    if (this.ws) {
-      return this.ws.send(data);
-    } else {
-      throw new Error('INVALID_STATE_ERR : Pausing to reconnect websocket');
     }
+
+    this.ws.onmessage = (event) => {
+      this.onmessage(this.decode(event))
+    }
+
+    this.ws.onerror = this.onerror
   },
 
   del(index) {
@@ -96,47 +87,51 @@ const Samo = {
         op: "del",
         index
       })
-      return this.ws.send(data);
+      return this.ws.send(data)
     } else {
-      throw new Error('INVALID_STATE_ERR : Pausing to reconnect websocket');
+      throw new Error('INVALID_STATE_ERR : Pausing to reconnect websocket')
     }
   },
 
   set(data, index) {
     if (this.ws) {
-      return this.ws.send(this.encode(data, index));
+      return this.ws.send(this.encode(data, index))
     } else {
-      throw new Error('INVALID_STATE_ERR : Pausing to reconnect websocket');
+      throw new Error('INVALID_STATE_ERR : Pausing to reconnect websocket')
     }
   },
 
   /**
    * Returns boolean, whether websocket was FORCEFULLY closed.
    */
-  close(force, url) {
-    if (url !== undefined && force) {
-      this.wsUrl = url;
-    }
+  close(forced) {
     if (this.ws) {
-      this.forcedClose = !force;
-      this.ws.close();
-      return true;
+      this.forcedClose = forced
+      this.ws.close()
+      return true
     }
-    return false;
+    return false
   },
 
   /**
    * Additional public API method to refresh the connection if still open (close, re-open).
    * For example, if the app suspects bad data / missed heart beats, it can try to refresh.
+   * Takes an optional url and ssl boolean parameter to switch the connection to a diffent one.
    *
    * Returns boolean, whether websocket was closed.
    */
-  refresh() {
+  refresh(url, ssl) {
     if (this.ws) {
-      this.ws.close();
-      return true;
+      if (url !== undefined) {
+        this.domain = url.split('/')[0]
+        this.wsProtocol = ssl ? 'wss://' : 'ws://'
+        this.apiProtocol = ssl ? 'https://' : 'http://'
+        this.wsUrl = this.wsProtocol + url
+      }
+      this.ws.close()
+      return true
     }
-    return false;
+    return false
   },
 
   decode(evt) {
@@ -162,44 +157,44 @@ const Samo = {
     })
   },
 
-  async rstats(optionalAddress) {
+  async rstats(url) {
     const res = await ky.get(
-      this.apiProtocol + ((optionalAddress) ? optionalAddress : this.domain)).json();
+      this.apiProtocol + ((url) ? url : this.domain)).json()
 
     return res
   },
 
-  async rget(mode, key, optionalAddress) {
+  async rget(mode, key, url) {
     const data = await ky.get(
-      this.apiProtocol + ((optionalAddress) ? optionalAddress : this.domain) + '/r/' + mode + '/' + key).json();
+      this.apiProtocol + ((url) ? url : this.domain) + '/r/' + mode + '/' + key).json()
     return this._decode(mode, data)
   },
 
-  async rpost(mode, key, data, optionalIndex, optionalAddress) {
+  async rpost(mode, key, data, index, url) {
     const res = await ky.post(
-      this.apiProtocol + ((optionalAddress) ? optionalAddress : this.domain) + '/r/' + mode + '/' + key,
+      this.apiProtocol + ((url) ? url : this.domain) + '/r/' + mode + '/' + key,
       {
         json: {
-          index: optionalIndex,
+          index: index,
           data: Base64.encode(JSON.stringify(data))
         }
       }
-    ).json();
+    ).json()
 
     return res.index
   },
 
-  async rdel(key, optionalAddress) {
+  async rdel(key, url) {
     return ky.delete(
       this.apiProtocol +
-      ((optionalAddress) ? optionalAddress : this.domain) +
-      '/r/' + key);
+      ((url) ? url : this.domain) +
+      '/r/' + key)
   },
 
   parseTime: (evt) => parseInt(JSON.parse(evt.data).data)
 }
 export default function (url, protocols = [], ssl) {
-  var e = Object.assign({}, Samo)
+  let e = Object.assign({}, _samo)
   e.domain = url.split('/')[0]
   e.wsProtocol = ssl ? 'wss://' : 'ws://'
   e.apiProtocol = ssl ? 'https://' : 'http://'

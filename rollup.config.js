@@ -6,7 +6,7 @@ export default {
   output: {
     name: 'Samo',
     file: 'bundle.js',
-    format: 'umd'
+    format: 'iife'
   },
   plugins: [
     resolve(),
