@@ -75,7 +75,11 @@ const _samo = {
     }
 
     this.ws.onmessage = (event) => {
-      this.onmessage(this.decode(event))
+      if (event.currentTarget.url.replace(this.wsProtocol + this.domain + '/', '') === 'time') {
+        this.onmessage(this.parseTime(event))
+      } else {
+        this.onmessage(this.decode(event))
+      }
     }
 
     this.ws.onerror = this.onerror
@@ -104,30 +108,9 @@ const _samo = {
   /**
    * Returns boolean, whether websocket was FORCEFULLY closed.
    */
-  close(forced) {
+  close(reload) {
     if (this.ws) {
-      this.forcedClose = forced
-      this.ws.close()
-      return true
-    }
-    return false
-  },
-
-  /**
-   * Additional public API method to refresh the connection if still open (close, re-open).
-   * For example, if the app suspects bad data / missed heart beats, it can try to refresh.
-   * Takes an optional url and ssl boolean parameter to switch the connection to a diffent one.
-   *
-   * Returns boolean, whether websocket was closed.
-   */
-  refresh(url, ssl) {
-    if (this.ws) {
-      if (url !== undefined) {
-        this.domain = url.split('/')[0]
-        this.wsProtocol = ssl ? 'wss://' : 'ws://'
-        this.apiProtocol = ssl ? 'https://' : 'http://'
-        this.wsUrl = this.wsProtocol + url
-      }
+      this.forcedClose = !reload
       this.ws.close()
       return true
     }
@@ -193,7 +176,7 @@ const _samo = {
 
   parseTime: (evt) => parseInt(JSON.parse(evt.data).data)
 }
-export default function (url, protocols = [], ssl) {
+export default function (url, ssl, protocols = []) {
   let e = Object.assign({}, _samo)
   e.domain = url.split('/')[0]
   e.wsProtocol = ssl ? 'wss://' : 'ws://'
