@@ -68,8 +68,8 @@ boxes.onerror = (evt) => {
     console.info(evt)
 }
 boxes.onmessage = (evt) => {
-    // a websocket connection will recieve base64 encoded data
-    console.info(boxes.decode(evt))
+    // a websocket connection will recieve snapshots or patched data
+    console.info(evt)
 }
 
 ```

@@ -13,6 +13,7 @@ declare namespace samo {
     keys: Array<string>
   }
   interface Samo extends Object {
+    cache: MessageData
     close(): void
     onopen(ev: Event): void
     onclose(ev: CloseEvent): void

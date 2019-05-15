@@ -15,12 +15,9 @@ describe('Samo', () => {
     const url = `http://localhost:8080`;
 
     const page = await browser.newPage();
-    await page.goto(url);
-
-    const title = await page.title();
-    expect(title).toBe('samo - test');
+    await page.goto(url, { waitUntil: 'networkidle2' });
     await page.waitFor('.wait');
     const bodyHTML = await page.evaluate(() => document.querySelector('body').innerHTML);
-    expect(bodyHTML.replace('<div class="wait"></div>', '')).toBe('00000');
+    expect(bodyHTML.replace('<div class="wait"></div>', '')).toBe('000000000000');
   });
 });

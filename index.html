@@ -3,10 +3,10 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>samo - test</title>
   <script type="text/javascript" src="/bundle.js"></script>
   <script type="text/javascript">
     const samo = new Samo('localhost:8800/mo/boxes')
+    let counter = 0
     samo.onopen = async (evt) => {
       samo.set({ name: "a box" }, "1")
       const boxID = await samo.rpost('mo', 'boxes', {
@@ -24,11 +24,25 @@
       samo.del(moreBoxID)
       samo.del('1')
       await samo.rdel('boxes/' + boxID)
-      const allTheBoxesAfter = await samo.rget('mo', 'boxes')
-      document.write(allTheBoxesAfter.length === 0 ? 0 : 1)
-      let wait = document.createElement('div')
-      wait.className = 'wait'
-      document.querySelector('body').appendChild(wait)
+    }
+    samo.onmessage = async (msg) => {
+      if (counter === 6) {
+        document.write(msg.length === 0 ? 0 : 1)
+        const allTheBoxesAfter = await samo.rget('mo', 'boxes')
+        document.write(allTheBoxesAfter.length === 0 ? 0 : 1)
+        let wait = document.createElement('div')
+        wait.className = 'wait'
+        document.querySelector('body').appendChild(wait)
+        return
+      }
+
+      if (counter <= 3) {
+        document.write(msg.length === counter ? 0 : 1)
+      } else {
+        document.write(msg.length === (6 - counter) ? 0 : 1)
+      }
+
+      counter++
     }
   </script>
 </head>
