@@ -29,5 +29,5 @@ before_script:
 script:
   - nohup go run main.go &
   - nohup http-server &
-  - sleep 3
+  - sleep 5
   - npm test
