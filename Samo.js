@@ -1,7 +1,10 @@
 // https://github.com/daviddoran/typescript-reconnecting-websocket/blob/master/reconnecting-websocket.ts
 import { Base64 } from 'js-base64'
+import { applyPatch } from 'fast-json-patch'
 import ky from 'ky'
 const _samo = {
+  // cache
+  cache: null,
   // Time to wait before attempting reconnect (after close)
   reconnectInterval: 1000,
   // Time to wait for WebSocket to open (before aborting and retrying)
@@ -78,7 +81,14 @@ const _samo = {
       if (event.currentTarget.url.replace(this.wsProtocol + this.domain + '/', '') === 'time') {
         this.onmessage(this.parseTime(event))
       } else {
-        this.onmessage(this.decode(event))
+        const msg = JSON.parse(event.data)
+        if (msg.snapshot) {
+          this.cache = this.decode(event)
+        } else {
+          const op = JSON.parse(Base64.decode(msg.data))
+          this.cache = applyPatch(this.cache, op).newDocument;
+        }
+        this.onmessage(this.cache)
       }
     }
 

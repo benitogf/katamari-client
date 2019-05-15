@@ -21,6 +21,6 @@ describe('Samo', () => {
     expect(title).toBe('samo - test');
     await page.waitFor('.wait');
     const bodyHTML = await page.evaluate(() => document.querySelector('body').innerHTML);
-    expect(bodyHTML.replace('<div class="wait"></div>', '')).toBe('00000');
+    expect(bodyHTML.replace('<div class="wait"></div>', '')).toBe('000000000000');
   });
 });
