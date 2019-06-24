@@ -11,12 +11,8 @@ addons:
 go:
   - 1.11.x
 
-before_install:
-  # Enable user namespace cloning
-  - "sysctl kernel.unprivileged_userns_clone=1"
-  # Launch XVFB
-  - "export DISPLAY=:99.0"
-  - "sh -e /etc/init.d/xvfb start"
+services:
+  - xvfb
 
 install:
   - go get github.com/benitogf/samo
