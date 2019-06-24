@@ -85,7 +85,11 @@ const _samo = {
         if (msg.snapshot) {
           this.cache = this.decode(event)
         } else {
-          const op = JSON.parse(Base64.decode(msg.data))
+          const opPrev = JSON.parse(Base64.decode(msg.data))
+          const op = {
+            ...op,
+            data: JSON.parse(Base64.decode(opPrev.data))
+          }
           this.cache = applyPatch(this.cache, op).newDocument;
         }
         this.onmessage(this.cache)
