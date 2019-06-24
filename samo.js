@@ -87,7 +87,7 @@ const _samo = {
         } else {
           const opPrev = JSON.parse(Base64.decode(msg.data))
           const op = {
-            ...op,
+            ...opPrev,
             data: JSON.parse(Base64.decode(opPrev.data))
           }
           this.cache = applyPatch(this.cache, op).newDocument;

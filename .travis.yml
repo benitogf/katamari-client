@@ -2,12 +2,6 @@ language: go
 os:
   - linux
 
-addons:
-  apt:
-    packages:
-      # This is required to run new chrome on old trusty
-      - libnss3
-
 go:
   - 1.11.x
 
