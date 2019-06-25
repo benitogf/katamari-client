@@ -1,6 +1,6 @@
 {
   "name": "samo-js-client",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "js client for samo",
   "main": "samo.js",
   "typings": "samo.d.ts",

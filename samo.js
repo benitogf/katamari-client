@@ -196,12 +196,14 @@ const _samo = {
 }
 export default function (url, ssl, protocols = []) {
   let e = Object.assign({}, _samo)
-  e.domain = url.split('/')[0]
-  e.wsProtocol = ssl ? 'wss://' : 'ws://'
-  e.apiProtocol = ssl ? 'https://' : 'http://'
-  e.wsUrl = e.wsProtocol + url
-  e.protocols = protocols
-  e.readyState = WebSocket.CONNECTING
-  e.connect(false) // initialize connection
+  if (url !== undefined) {
+    e.domain = url.split('/')[0]
+    e.wsProtocol = ssl ? 'wss://' : 'ws://'
+    e.apiProtocol = ssl ? 'https://' : 'http://'
+    e.wsUrl = e.wsProtocol + url
+    e.protocols = protocols
+    e.readyState = WebSocket.CONNECTING
+    e.connect(false) // initialize connection
+  }
   return e
 }

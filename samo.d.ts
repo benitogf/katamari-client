@@ -1,4 +1,4 @@
-declare function Samo(url: string, ssl?: boolean, protocols?: Array<string>): samo.Samo;
+declare function Samo(url?: string, ssl?: boolean, protocols?: Array<string>): samo.Samo;
 
 declare namespace samo {
   type MessageData = Object<any> | Array<any> | string | number
