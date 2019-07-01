@@ -36,6 +36,16 @@ const _samo = {
   onconnecting: (ev) => { },
   onmessage: (data) => { },
   onerror: (ev) => { },
+  onfrozen: (event) => {
+    // The page is now frozen.
+    this.close(false)
+  },
+  onresume: (event) => {
+    // The page has been unfrozen.
+    document.removeEventListener('freeze', this.onfrozen)
+    document.removeEventListener('resume', this.onresume)
+    this.connect(false)
+  },
 
   connect(reconnectAttempt) {
     this.ws = new WebSocket(this.wsUrl, this.protocols)
@@ -100,6 +110,8 @@ const _samo = {
       }
     }
 
+    document.addEventListener('freeze', this.onfrozen)
+    document.addEventListener('resume', this.onresume)
     this.ws.onerror = this.onerror
   },
 
