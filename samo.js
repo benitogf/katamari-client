@@ -40,7 +40,7 @@ const _samo = {
     // The page is now frozen.
     this.close(false)
   },
-  onresume: (event) => {
+  onresume: () => {
     // The page has been unfrozen.
     document.removeEventListener('freeze', this.onfrozen)
     document.removeEventListener('resume', this.onresume)
@@ -110,8 +110,8 @@ const _samo = {
       }
     }
 
-    document.addEventListener('freeze', this.onfrozen)
-    document.addEventListener('resume', this.onresume)
+    document.addEventListener('freeze', this.onfrozen.bind(this))
+    document.addEventListener('resume', this.onresume.bind(this))
     this.ws.onerror = this.onerror
   },
 

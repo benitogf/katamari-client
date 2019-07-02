@@ -1,3 +1,5 @@
+import { connect } from "net";
+
 declare function Samo(url?: string, ssl?: boolean, protocols?: Array<string>): samo.Samo;
 
 declare namespace samo {
@@ -14,13 +16,16 @@ declare namespace samo {
   }
   interface Samo extends Object {
     cache: MessageData
-    close(): void
+    connect(reconnectAttempt?: boolean): void
+    close(reload?: boolean): void
+
     onopen(ev: Event): void
     onclose(ev: CloseEvent): void
     onconnecting(): void
     onmessage(data: MessageData): void
     onerror(ev: ErrorEvent): void
-    close(reload: boolean): void
+    onfrozen(ev: Event): void
+    onresume(ev: Event): void
 
     encode(data: MessageData, index?: string): string
     decode(ev: MessageEvent): Data
