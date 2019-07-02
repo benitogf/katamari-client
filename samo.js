@@ -6,9 +6,9 @@ const _samo = {
   // cache
   cache: null,
   // Time to wait before attempting reconnect (after close)
-  reconnectInterval: 1000,
+  reconnectInterval: 3000,
   // Time to wait for WebSocket to open (before aborting and retrying)
-  timeoutInterval: 2000,
+  timeoutInterval: 5000,
 
   // Should only be used to read WebSocket readyState
   readyState: null,
@@ -36,16 +36,6 @@ const _samo = {
   onconnecting: (ev) => { },
   onmessage: (data) => { },
   onerror: (ev) => { },
-  onfrozen: (event) => {
-    // The page is now frozen.
-    this.close(false)
-  },
-  onresume: () => {
-    // The page has been unfrozen.
-    document.removeEventListener('freeze', this.onfrozen)
-    document.removeEventListener('resume', this.onresume)
-    this.connect(false)
-  },
 
   connect(reconnectAttempt) {
     this.ws = new WebSocket(this.wsUrl, this.protocols)
@@ -72,6 +62,7 @@ const _samo = {
       clearTimeout(timeout)
       if (this.forcedClose) {
         this.readyState = WebSocket.CLOSED
+        this.ws = null
         this.onclose(event)
       } else {
         this.readyState = WebSocket.CONNECTING
@@ -110,9 +101,43 @@ const _samo = {
       }
     }
 
-    document.addEventListener('freeze', this.onfrozen.bind(this))
-    document.addEventListener('resume', this.onresume.bind(this))
+    if (!this.onfrozen) {
+      this.onfrozen = this._onfrozen.bind(this)
+      this.onresume = this._onresume.bind(this)
+    }
+
+    document.removeEventListener('freeze', this.onfrozen)
+    document.removeEventListener('resume', this.onresume)
+
+    // if (!reconnectAttempt) {
+    document.addEventListener('freeze', this.onfrozen)
+    document.addEventListener('resume', this.onresume)
+    // }
     this.ws.onerror = this.onerror
+  },
+
+  /**
+   * Returns boolean, whether websocket was FORCEFULLY closed.
+   */
+  close(reload) {
+    if (this.ws) {
+      this.forcedClose = !reload
+      this.readyState = WebSocket.CLOSING
+      this.ws.close()
+      return true
+    }
+    return false
+  },
+
+  _onfrozen() {
+    // The page is now frozen.
+    this.close()
+  },
+  _onresume() {
+    // The page has been unfrozen.
+    if (this.readyState !== WebSocket.OPEN && this.readyState !== WebSocket.CONNECTING) {
+      this.connect()
+    }
   },
 
   del(index) {
@@ -133,18 +158,6 @@ const _samo = {
     } else {
       throw new Error('INVALID_STATE_ERR : Pausing to reconnect websocket')
     }
-  },
-
-  /**
-   * Returns boolean, whether websocket was FORCEFULLY closed.
-   */
-  close(reload) {
-    if (this.ws) {
-      this.forcedClose = !reload
-      this.ws.close()
-      return true
-    }
-    return false
   },
 
   decode(evt) {
