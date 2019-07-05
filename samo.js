@@ -24,6 +24,7 @@ const _samo = {
   // The underlying WebSocket
   ws: null,
   wsUrl: null,
+  frozen: false,
   wsProtocol: 'ws://',
 
   // http api
@@ -63,6 +64,8 @@ const _samo = {
       if (this.forcedClose) {
         this.readyState = WebSocket.CLOSED
         this.ws = null
+        document.removeEventListener('freeze', this.onfrozen)
+        document.removeEventListener('resume', this.onresume)
         this.onclose(event)
       } else {
         this.readyState = WebSocket.CONNECTING
@@ -105,14 +108,9 @@ const _samo = {
       this.onfrozen = this._onfrozen.bind(this)
       this.onresume = this._onresume.bind(this)
     }
-
-    document.removeEventListener('freeze', this.onfrozen)
-    document.removeEventListener('resume', this.onresume)
-
-    // if (!reconnectAttempt) {
-    document.addEventListener('freeze', this.onfrozen)
-    document.addEventListener('resume', this.onresume)
-    // }
+    // https://wicg.github.io/page-lifecycle/spec.html#html-task-source-dfn
+    document.addEventListener('freeze', this.onfrozen, { capture: true, once: true })
+    document.addEventListener('resume', this.onresume, { capture: true })
     this.ws.onerror = this.onerror
   },
 
@@ -131,12 +129,23 @@ const _samo = {
 
   _onfrozen() {
     // The page is now frozen.
+    this.frozen = true
     this.close()
   },
-  _onresume() {
+  _onresume(ev) {
     // The page has been unfrozen.
-    if (this.readyState !== WebSocket.OPEN && this.readyState !== WebSocket.CONNECTING) {
-      this.connect()
+    if (this.frozen && this.readyState !== WebSocket.CLOSED && this.readyState !== WebSocket.CLOSING) {
+      this.close()
+    }
+
+    if (this.frozen) {
+      const intervalID = window.setInterval(() => {
+        if (this.readyState === WebSocket.CLOSED) {
+          this.connect()
+          this.frozen = false
+          clearInterval(intervalID)
+        }
+      }, 500)
     }
   },
 
