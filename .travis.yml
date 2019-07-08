@@ -5,6 +5,9 @@ os:
 go:
   - 1.11.x
 
+addons:
+  chrome: stable
+
 services:
   - xvfb
 
