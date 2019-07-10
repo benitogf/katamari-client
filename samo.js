@@ -65,6 +65,7 @@ const _samo = {
         this.readyState = WebSocket.CLOSED
         this.ws = null
         document.removeEventListener('freeze', this.onfrozen)
+        // document.removeEventListener('pause', this.onfrozen)
         document.removeEventListener('resume', this.onresume)
         this.onclose(event)
       } else {
@@ -108,8 +109,11 @@ const _samo = {
       this.onfrozen = this._onfrozen.bind(this)
       this.onresume = this._onresume.bind(this)
     }
+    // document.removeEventListener('resume', this.onresume)
     // https://wicg.github.io/page-lifecycle/spec.html#html-task-source-dfn
+    // https://cordova.apache.org/docs/en/latest/guide/platforms/android/index.html#lifecycle-guide
     document.addEventListener('freeze', this.onfrozen, { capture: true, once: true })
+    // document.addEventListener('pause', this.onfrozen, { capture: true, once: true })
     document.addEventListener('resume', this.onresume, { capture: true })
     this.ws.onerror = this.onerror
   },
@@ -127,18 +131,21 @@ const _samo = {
     return false
   },
 
-  _onfrozen() {
-    // The page is now frozen.
-    this.frozen = true
-    this.close()
+  _onfrozen(ev) {
+    // The page is now frozen/paused.
+    // if (ev && ev.type === 'freeze') {
+    if (!this.frozen) {
+      this.frozen = true
+      this.close()
+    }
+    // }
   },
   _onresume(ev) {
     // The page has been unfrozen.
     if (this.frozen && this.readyState !== WebSocket.CLOSED && this.readyState !== WebSocket.CLOSING) {
       this.close()
     }
-
-    if (this.frozen) {
+    if (this.frozen || this.readyState === WebSocket.CLOSED) {
       const intervalID = window.setInterval(() => {
         if (this.readyState === WebSocket.CLOSED) {
           this.connect()
