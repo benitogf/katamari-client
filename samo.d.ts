@@ -16,6 +16,9 @@ declare namespace samo {
   }
   interface Samo extends Object {
     cache: MessageData
+    forcedClose: Boolean
+    readyState: Number
+    frozen: Boolean
     connect(reconnectAttempt?: boolean): void
     close(reload?: boolean): void
 

@@ -61,7 +61,7 @@ const _samo = {
 
     this.ws.onclose = (event) => {
       clearTimeout(timeout)
-      if (this.forcedClose) {
+      if (this.forcedClose || this.frozen) {
         this.readyState = WebSocket.CLOSED
         this.ws = null
         document.removeEventListener('freeze', this.onfrozen)
@@ -134,18 +134,22 @@ const _samo = {
   _onfrozen(ev) {
     // The page is now frozen/paused.
     // if (ev && ev.type === 'freeze') {
+    // console.log('frozen', this.readyState, this.frozen)
     if (!this.frozen) {
       this.frozen = true
-      this.close()
+      this.readyState = WebSocket.CLOSING
+      this.ws.close()
     }
     // }
   },
   _onresume(ev) {
     // The page has been unfrozen.
-    if (this.frozen && this.readyState !== WebSocket.CLOSED && this.readyState !== WebSocket.CLOSING) {
-      this.close()
+    // console.log('resume', this.readyState, this.frozen, this.forcedClose)
+    if ((this.frozen || this.forcedClose) && this.readyState !== WebSocket.CLOSED && this.readyState !== WebSocket.CLOSING) {
+      this.readyState = WebSocket.CLOSING
+      this.ws.close()
     }
-    if (this.frozen || this.readyState === WebSocket.CLOSED) {
+    if (this.frozen && !this.forcedClose) {
       const intervalID = window.setInterval(() => {
         if (this.readyState === WebSocket.CLOSED) {
           this.connect()
