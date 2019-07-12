@@ -63,10 +63,8 @@ const _samo = {
       clearTimeout(timeout)
       if (this.forcedClose || this.frozen) {
         this.readyState = WebSocket.CLOSED
-        this.ws = null
         document.removeEventListener('freeze', this.onfrozen)
-        // document.removeEventListener('pause', this.onfrozen)
-        document.removeEventListener('resume', this.onresume)
+        document.removeEventListener('pause', this.onfrozen)
         this.onclose(event)
       } else {
         this.readyState = WebSocket.CONNECTING
@@ -113,7 +111,11 @@ const _samo = {
     // https://wicg.github.io/page-lifecycle/spec.html#html-task-source-dfn
     // https://cordova.apache.org/docs/en/latest/guide/platforms/android/index.html#lifecycle-guide
     document.addEventListener('freeze', this.onfrozen, { capture: true, once: true })
-    // document.addEventListener('pause', this.onfrozen, { capture: true, once: true })
+
+    // https://github.com/apache/cordova-browser/issues/79
+    if (document.getElementsByTagName('body')[0].dataset['platform'] === 'android') {
+      document.addEventListener('pause', this.onfrozen, { capture: true, once: true })
+    }
     document.addEventListener('resume', this.onresume, { capture: true })
     this.ws.onerror = this.onerror
   },
@@ -134,7 +136,7 @@ const _samo = {
   _onfrozen(ev) {
     // The page is now frozen/paused.
     // if (ev && ev.type === 'freeze') {
-    // console.log('frozen', this.readyState, this.frozen)
+    console.log('frozen', this.readyState, this.frozen)
     if (!this.frozen) {
       this.frozen = true
       this.readyState = WebSocket.CLOSING
@@ -144,7 +146,7 @@ const _samo = {
   },
   _onresume(ev) {
     // The page has been unfrozen.
-    // console.log('resume', this.readyState, this.frozen, this.forcedClose)
+    console.log('resume', this.readyState, this.frozen, this.forcedClose)
     if ((this.frozen || this.forcedClose) && this.readyState !== WebSocket.CLOSED && this.readyState !== WebSocket.CLOSING) {
       this.readyState = WebSocket.CLOSING
       this.ws.close()
@@ -152,11 +154,16 @@ const _samo = {
     if (this.frozen && !this.forcedClose) {
       const intervalID = window.setInterval(() => {
         if (this.readyState === WebSocket.CLOSED) {
+          document.removeEventListener('resume', this.onresume)
           this.connect()
           this.frozen = false
           clearInterval(intervalID)
         }
       }, 500)
+    } else {
+      if (this.forcedClose) {
+        document.removeEventListener('resume', this.onresume)
+      }
     }
   },
 
