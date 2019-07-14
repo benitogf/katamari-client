@@ -63,6 +63,7 @@ const _samo = {
       clearTimeout(timeout)
       if (this.forcedClose || this.frozen) {
         this.readyState = WebSocket.CLOSED
+        this.ws = null
         document.removeEventListener('freeze', this.onfrozen)
         document.removeEventListener('pause', this.onfrozen)
         this.onclose(event)
@@ -113,7 +114,7 @@ const _samo = {
     document.addEventListener('freeze', this.onfrozen, { capture: true, once: true })
 
     // https://github.com/apache/cordova-browser/issues/79
-    if (document.getElementsByTagName('body')[0].dataset['platform'] === 'android') {
+    if (navigator.userAgent.match(/Android|iPhone|iPad|iPod/i)) {
       document.addEventListener('pause', this.onfrozen, { capture: true, once: true })
     }
     document.addEventListener('resume', this.onresume, { capture: true })
@@ -139,15 +140,17 @@ const _samo = {
     console.log('frozen', this.readyState, this.frozen)
     if (!this.frozen) {
       this.frozen = true
-      this.readyState = WebSocket.CLOSING
-      this.ws.close()
+      if (this.ws) {
+        this.readyState = WebSocket.CLOSING
+        this.ws.close()
+      }
     }
     // }
   },
   _onresume(ev) {
     // The page has been unfrozen.
     console.log('resume', this.readyState, this.frozen, this.forcedClose)
-    if ((this.frozen || this.forcedClose) && this.readyState !== WebSocket.CLOSED && this.readyState !== WebSocket.CLOSING) {
+    if (this.ws && (this.frozen || this.forcedClose) && this.readyState !== WebSocket.CLOSED && this.readyState !== WebSocket.CLOSING) {
       this.readyState = WebSocket.CLOSING
       this.ws.close()
     }
