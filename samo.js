@@ -207,7 +207,7 @@ const _samo = {
   },
 
   decode(evt) {
-    var bytearray = new Uint8Array(event.data)
+    const bytearray = new Uint8Array(event.data)
     const msg = Base64.decode(binArrayToJson(bytearray).data)
     const data = msg !== '' ? JSON.parse(msg) : { created: 0, updated: 0, index: '', data: 'e30=' }
     const mode = evt.currentTarget.url.replace(this.wsProtocol + this.domain + '/', '').split('/')[0]
@@ -264,7 +264,10 @@ const _samo = {
       '/r/' + key)
   },
 
-  parseTime: (evt) => parseInt(JSON.parse(evt.data).data)
+  parseTime: (event) => {
+    const bytearray = new Uint8Array(event.data)
+    return parseInt(binArrayToJson(bytearray).data)
+  }
 }
 export default function (url, ssl, protocols = []) {
   let e = Object.assign({}, _samo)
