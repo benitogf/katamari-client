@@ -2,6 +2,15 @@
 import { Base64 } from 'js-base64'
 import { applyPatch } from 'fast-json-patch'
 import ky from 'ky'
+
+const binArrayToJson = function (binArray) {
+  var str = "";
+  for (var i = 0; i < binArray.length; i++) {
+    str += String.fromCharCode(parseInt(binArray[i]));
+  }
+  return JSON.parse(str)
+}
+
 const _samo = {
   // cache
   cache: null,
@@ -42,6 +51,7 @@ const _samo = {
 
   connect(reconnectAttempt) {
     this.ws = new WebSocket(this.wsUrl, this.protocols)
+    this.ws.binaryType = "arraybuffer"
 
     this.onconnecting()
 
@@ -87,11 +97,11 @@ const _samo = {
       if (event.currentTarget.url.replace(this.wsProtocol + this.domain + '/', '') === 'time') {
         this.onmessage(this.parseTime(event))
       } else {
-        const msg = JSON.parse(event.data)
+        var bytearray = new Uint8Array(event.data)
+        const msg = binArrayToJson(bytearray)
         if (msg.snapshot) {
           this.cache = this.decode(event)
         } else {
-          // console.log(JSON.parse(Base64.decode(msg.data)))
           const ops = JSON.parse(Base64.decode(msg.data)).map(op => (
             op.op === 'add' ?
               {
@@ -197,7 +207,8 @@ const _samo = {
   },
 
   decode(evt) {
-    const msg = Base64.decode(JSON.parse(evt.data).data)
+    var bytearray = new Uint8Array(event.data)
+    const msg = Base64.decode(binArrayToJson(bytearray).data)
     const data = msg !== '' ? JSON.parse(msg) : { created: 0, updated: 0, index: '', data: 'e30=' }
     const mode = evt.currentTarget.url.replace(this.wsProtocol + this.domain + '/', '').split('/')[0]
     return this._decode(mode, data)
