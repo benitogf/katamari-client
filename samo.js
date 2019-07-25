@@ -41,13 +41,13 @@ const _samo = {
 
 
   // Set up the default 'noop' event handlers
-  onopen: (ev) => { },
-  onclose: (ev) => { },
-  onconnecting: (ev) => { },
+  onopen: (event) => { },
+  onclose: (event) => { },
+  onconnecting: (event) => { },
   onmessage: (data) => { },
-  onerror: (ev) => { },
-  onfrozen: (ev) => { },
-  onresume: (ev) => { },
+  onerror: (event) => { },
+  onfrozen: (event) => { },
+  onresume: (event) => { },
 
   connect(reconnectAttempt) {
     this.ws = new WebSocket(this.wsUrl, this.protocols)
@@ -152,9 +152,9 @@ const _samo = {
     return false
   },
 
-  _onfrozen(ev) {
+  _onfrozen(event) {
     // The page is now frozen/paused.
-    this.onfrozen(ev)
+    this.onfrozen(event)
     if (!this.frozen) {
       this.frozen = true
       if (this.ws) {
@@ -163,9 +163,9 @@ const _samo = {
       }
     }
   },
-  _onresume(ev) {
+  _onresume(event) {
     // The page has been unfrozen.
-    this.onresume(ev)
+    this.onresume(event)
     if (this.ws && (this.frozen || this.forcedClose) && this.readyState !== WebSocket.CLOSED && this.readyState !== WebSocket.CLOSING) {
       this.readyState = WebSocket.CLOSING
       this.ws.close()
@@ -206,11 +206,11 @@ const _samo = {
     }
   },
 
-  decode(evt) {
+  decode(event) {
     const bytearray = new Uint8Array(event.data)
     const msg = Base64.decode(binArrayToJson(bytearray).data)
     const data = msg !== '' ? JSON.parse(msg) : { created: 0, updated: 0, index: '', data: 'e30=' }
-    const mode = evt.currentTarget.url.replace(this.wsProtocol + this.domain + '/', '').split('/')[0]
+    const mode = event.currentTarget.url.replace(this.wsProtocol + this.domain + '/', '').split('/')[0]
     return this._decode(mode, data)
   },
 
