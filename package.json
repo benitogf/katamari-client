@@ -1,6 +1,6 @@
 {
   "name": "samo-js-client",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "js client for samo",
   "main": "samo.js",
   "typings": "samo.d.ts",
@@ -17,7 +17,7 @@
   "dependencies": {
     "fast-json-patch": "^2.1.0",
     "js-base64": "^2.5.1",
-    "ky": "^0.11.1"
+    "ky": "^0.11.2"
   },
   "devDependencies": {
     "jasmine": "^3.4.0",
