@@ -34,12 +34,10 @@ declare namespace samo {
     decode(ev: MessageEvent): Data
     parseTime(ev: MessageEvent): number
 
-    set(data: MessageData, index?: string): void
-    del(index: string): void
-    rstats(url?: string): Stats
-    rget(mode: string, key: string, url?: string): Data
-    rpost(mode: string, key: string, data: MessageData, index?: string, url?: string): string
-    rdel(key: string, url: string): void
+    stats(url?: string): Stats
+    get(mode: string, key: string, url?: string): Data
+    publish(mode: string, key: string, data: MessageData, index?: string, url?: string): string
+    unpublish(key: string, url: string): void
   }
 }
 

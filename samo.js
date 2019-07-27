@@ -186,26 +186,6 @@ const _samo = {
     }
   },
 
-  del(index) {
-    if (this.ws) {
-      const data = JSON.stringify({
-        op: "del",
-        index
-      })
-      return this.ws.send(data)
-    } else {
-      throw new Error('INVALID_STATE_ERR : Pausing to reconnect websocket')
-    }
-  },
-
-  set(data, index) {
-    if (this.ws) {
-      return this.ws.send(this.encode(data, index))
-    } else {
-      throw new Error('INVALID_STATE_ERR : Pausing to reconnect websocket')
-    }
-  },
-
   decode(event) {
     const bytearray = new Uint8Array(event.data)
     const msg = Base64.decode(binArrayToJson(bytearray).data)
@@ -230,20 +210,20 @@ const _samo = {
     })
   },
 
-  async rstats(url) {
+  async stats(url) {
     const res = await ky.get(
       this.apiProtocol + ((url) ? url : this.domain)).json()
 
     return res
   },
 
-  async rget(mode, key, url) {
+  async get(mode, key, url) {
     const data = await ky.get(
       this.apiProtocol + ((url) ? url : this.domain) + '/r/' + mode + '/' + key).json()
     return this._decode(mode, data)
   },
 
-  async rpost(mode, key, data, index, url) {
+  async publish(mode, key, data, index, url) {
     const res = await ky.post(
       this.apiProtocol + ((url) ? url : this.domain) + '/r/' + mode + '/' + key,
       {
@@ -257,7 +237,7 @@ const _samo = {
     return res.index
   },
 
-  async rdel(key, url) {
+  async unpublish(key, url) {
     return ky.delete(
       this.apiProtocol +
       ((url) ? url : this.domain) +
