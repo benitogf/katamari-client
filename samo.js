@@ -3,12 +3,18 @@ import { Base64 } from 'js-base64'
 import { applyPatch } from 'fast-json-patch'
 import ky from 'ky'
 
-const binArrayToJson = function (binArray) {
-  var str = "";
-  for (var i = 0; i < binArray.length; i++) {
-    str += String.fromCharCode(parseInt(binArray[i]));
+// https://stackoverflow.com/questions/49123222/converting-array-buffer-to-string-maximum-call-stack-size-exceeded
+const binArrayToJson = (buf) => {
+  if ('TextDecoder' in window) {
+    // Decode as UTF-8
+    const dataView = new DataView(buf);
+    const decoder = new TextDecoder('utf8');
+    return JSON.parse(decoder.decode(dataView));
+  } else {
+    return JSON.parse(new Uint8Array(buf).reduce((data, byte) =>
+      data + String.fromCharCode(byte),
+      ''))
   }
-  return JSON.parse(str)
 }
 
 const _samo = {
@@ -97,10 +103,9 @@ const _samo = {
       if (event.currentTarget.url.replace(this.wsProtocol + this.domain + '/', '') === 'time') {
         this.onmessage(this.parseTime(event))
       } else {
-        var bytearray = new Uint8Array(event.data)
-        const msg = binArrayToJson(bytearray)
+        const msg = binArrayToJson(event.data)
         if (msg.snapshot) {
-          this.cache = this.decode(event)
+          this.cache = this.decode(msg, event.currentTarget.url)
         } else {
           const ops = JSON.parse(Base64.decode(msg.data)).map(op => (
             op.op === 'add' ?
@@ -186,11 +191,10 @@ const _samo = {
     }
   },
 
-  decode(event) {
-    const bytearray = new Uint8Array(event.data)
-    const msg = Base64.decode(binArrayToJson(bytearray).data)
+  decode(eventMsg, url) {
+    const msg = Base64.decode(eventMsg.data)
     const data = msg !== '' ? JSON.parse(msg) : { created: 0, updated: 0, index: '', data: 'e30=' }
-    const mode = event.currentTarget.url.replace(this.wsProtocol + this.domain + '/', '').split('/')[0]
+    const mode = url.replace(this.wsProtocol + this.domain + '/', '').split('/')[0]
     return this._decode(mode, data)
   },
 
@@ -245,8 +249,7 @@ const _samo = {
   },
 
   parseTime: (event) => {
-    const bytearray = new Uint8Array(event.data)
-    return parseInt(binArrayToJson(bytearray).data)
+    return parseInt(binArrayToJson(event.data).data)
   }
 }
 export default function (url, ssl, protocols = []) {
