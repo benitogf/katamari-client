@@ -4,47 +4,6 @@
 <head>
   <meta charset="UTF-8">
   <script type="text/javascript" src="/bundle.js"></script>
-  <script type="text/javascript">
-    const samo = Samo('localhost:8800/mo/boxes')
-    let counter = 0
-    samo.onopen = async (evt) => {
-      await samo.publish('mo', 'boxes', { name: "a box" }, "1")
-      const boxID = await samo.publish('mo', 'boxes', {
-        name: "other box"
-      }, "other")
-      document.write(boxID === "other" ? 0 : 1)
-      const moreBoxID = await samo.publish('sa', 'boxes/9', {
-        name: "box#9"
-      })
-      document.write(moreBoxID === "9" ? 0 : 1)
-      const boxNumerNine = await samo.get('sa', 'boxes/9')
-      document.write(boxNumerNine.index === "9" ? 0 : 1)
-      const allTheBoxes = await samo.get('mo', 'boxes')
-      document.write(allTheBoxes.length === 3 ? 0 : 1)
-      await samo.unpublish('boxes/' + moreBoxID)
-      await samo.unpublish('boxes/' + '1')
-      await samo.unpublish('boxes/' + boxID)
-    }
-    samo.onmessage = async (msg) => {
-      if (counter === 6) {
-        document.write(msg.length === 0 ? 0 : 1)
-        const allTheBoxesAfter = await samo.get('mo', 'boxes')
-        document.write(allTheBoxesAfter.length === 0 ? 0 : 1)
-        let wait = document.createElement('div')
-        wait.className = 'wait'
-        document.querySelector('body').appendChild(wait)
-        return
-      }
-
-      if (counter <= 3) {
-        document.write(msg.length === counter ? 0 : 1)
-      } else {
-        document.write(msg.length === (6 - counter) ? 0 : 1)
-      }
-
-      counter++
-    }
-  </script>
 </head>
 
 <body>
