@@ -30,8 +30,8 @@ const address = 'localhost:8800'
 const samo = Samo('localhost:8800/sa/box')
 let msgs = []
 samo.onopen = async () => {
-  await samo.publish('sa', 'box', { name: "a box" }) // create
-  await samo.publish('sa', 'box', { name: "still a box" }) // update
+  await samo.publish('sa/box', { name: "a box" }) // create
+  await samo.publish('sa/box', { name: "still a box" }) // update
   await samo.unpublish('box') // delete
 }
 samo.onmessage = async (msg) => { // read
@@ -51,9 +51,9 @@ samo.onerror = (err) => {
 const samo = Samo('localhost:8800/mo/box')
 let msgs = []
 samo.onopen = async () => {
-  await samo.publish('mo', 'box', { name: "something" }, '1') // create
-  await samo.publish('mo', 'box', { name: "still something" }, '1') // update
-  await samo.unpublish('box/1') // delete
+  const id = await samo.publish('mo/box', { name: "something" }) // create
+  await samo.publish('sa/box/' + id, { name: "still something" }) // update
+  await samo.unpublish('box/'+id) // delete
 }
 samo.onmessage = async (msg) => { // read
   msgs.push(msg)

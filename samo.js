@@ -10,36 +10,50 @@ const binArrayToJson = (buf) => {
     const dataView = new DataView(buf)
     const decoder = new TextDecoder('utf8')
     return JSON.parse(decoder.decode(dataView))
-  } else {
-    return JSON.parse(new Uint8Array(buf).reduce((data, byte) =>
-      data + String.fromCharCode(byte),
-      ''))
   }
+
+  return JSON.parse(new Uint8Array(buf).reduce((data, byte) =>
+    data + String.fromCharCode(byte),
+    ''))
 }
 
-const parseOps = (data) => JSON.parse(Base64.decode(data)).map(op => (
-  op.op === 'add' ?
-    {
+const parseOp = (op) => typeof op.value === 'string' ?
+  op.value :
+  op.value.data !== undefined ?
+    op.value.data :
+    op.value
+
+const parseOps = (data) => JSON.parse(Base64.decode(data)).map(op => {
+  if (op.op === 'add') {
+    return {
       ...op,
       value: {
         ...op.value,
-        data: JSON.parse(Base64.decode(op.value.data !== undefined ? op.value.data : op.value))
+        data: JSON.parse(Base64.decode(parseOp(op)))
       }
-    } : op.path.indexOf('data') !== -1 ?
-      {
-        ...op,
-        value: JSON.parse(Base64.decode(typeof op.value === 'string' ? op.value : op.value.data !== undefined ? op.value.data : op.value))
-      } : op))
+    }
+  }
+  if (op.path.indexOf('data') !== -1) {
+    return {
+      ...op,
+      value: JSON.parse(Base64.decode(parseOp(op)))
+    }
+  }
+  return op
+})
 
-const parseMsg = (mode, data) =>
-  (mode === 'sa') ? Object.assign(data, { data: JSON.parse(Base64.decode(data['data'])) }) :
-    Array.isArray(data) ?
-      data.map((obj) => {
-        obj['data'] = JSON.parse(Base64.decode(obj['data']))
-        return obj
-      }) : []
-
-const copy = (a) => JSON.parse(JSON.stringify(a))
+const parseMsg = (mode, data) => {
+  if (mode === 'sa') {
+    return Object.assign(data, { data: JSON.parse(Base64.decode(data['data'])) })
+  }
+  if (Array.isArray(data)) {
+    return data.map((obj) => {
+      obj['data'] = JSON.parse(Base64.decode(obj['data']))
+      return obj
+    })
+  }
+  return []
+}
 
 const _samo = {
   // cache
@@ -77,18 +91,23 @@ const _samo = {
     this.onmessage(parseInt(binArrayToJson(event.data).data))
   },
 
-  _data(event) {
-    const msg = binArrayToJson(event.data)
+  _patch(data) {
+    const msg = binArrayToJson(data)
     if (msg.snapshot) {
       const msgData = Base64.decode(msg.data)
-      const data = msgData !== '' ? JSON.parse(msgData) : { created: 0, updated: 0, index: '', data: 'e30=' }
-      this.cache = parseMsg(this.mode, data)
-      this.onmessage(copy(this.cache))
-      return
+      const pre = msgData !== '' ? JSON.parse(msgData) : { created: 0, updated: 0, index: '', data: 'e30=' }
+      this.cache = parseMsg(this.mode, pre)
+      return this.cache
     }
 
-    this.cache = applyPatch(this.cache, parseOps(msg.data)).newDocument
-    this.onmessage(copy(this.cache))
+    const ops = parseOps(msg.data)
+    this.cache = applyPatch(this.cache, ops).newDocument
+    return this.cache
+  },
+
+  _data(event) {
+    const patch = this._patch(event.data)
+    this.onmessage(patch)
   },
 
   _onfrozen(event) {
@@ -200,17 +219,17 @@ const _samo = {
   async stats() {
     return ky.get(this.httpUrl).json()
   },
-  async get(mode, key) {
-    const data = await ky.get(
-      this.httpUrl + '/r/' + mode + '/' + key).json()
+  async get(url) {
+    const urlSplit = url.split('/')
+    const mode = urlSplit[0]
+    const key = url.replace(mode + '/', '')
+    const data = await ky.get(this.httpUrl + '/r/' + key).json()
     return parseMsg(mode, data)
   },
-  async publish(mode, key, data, index) {
+  async publish(key, data) {
     const res = await ky.post(
-      this.httpUrl + '/r/' + mode + '/' + key,
-      {
+      this.httpUrl + '/r/' + key, {
         json: {
-          index: index,
           data: Base64.encode(JSON.stringify(data))
         }
       }
