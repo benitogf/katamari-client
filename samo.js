@@ -251,7 +251,7 @@ export default function (url, ssl, protocols = []) {
     let httpProtocol = ssl ? 'https://' : 'http://'
     e.httpUrl = httpProtocol + e.domain
     e.wsUrl = wsProtocol + url
-    e.isTime = url === '/time'
+    e.isTime = urlSplit[1] === 'time'
     e.protocols = protocols
     e.readyState = WebSocket.CONNECTING
     e.connect(false) // initialize connection
