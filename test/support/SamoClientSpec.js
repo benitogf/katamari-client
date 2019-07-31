@@ -14,7 +14,7 @@ describe('Samo', () => {
     if (browser) await browser.close()
   })
 
-  it('SA', async () => {
+  it('sa', async () => {
     const empty = { created: 0, updated: 0, index: '', data: {} }
     const aBox = { name: 'a box' }
     const stillAbox = { name: 'still a box' }
@@ -27,15 +27,15 @@ describe('Samo', () => {
         await samo.publish('sa/box', { name: 'still a box' }) // update
         await samo.unpublish('box') // delete
       }
-      samo.onmessage = async (msg) => { // read
+      samo.onmessage = (msg) => { // read
         msgs.push(copy(msg))
         if (msgs.length === 4) {
-          samo.close(true)
+          samo.close()
           resolve(msgs)
         }
       }
       samo.onerror = (err) => {
-        samo.close(true)
+        samo.close()
         reject(err)
       }
     }))
@@ -50,7 +50,7 @@ describe('Samo', () => {
     expect(result[3]).toEqual(empty)
   })
 
-  it('MO', async () => {
+  it('mo', async () => {
     const something = { name: 'something' }
     const stillSomething = { name: 'still something' }
     const result = await page.evaluate(() => new Promise(async (resolve, reject) => {
@@ -62,7 +62,7 @@ describe('Samo', () => {
         await samo.publish('sa/box/' + id, { name: 'still something' }) // update
         await samo.unpublish('box/' + id) // delete
       }
-      samo.onmessage = async (msg) => { // read
+      samo.onmessage = (msg) => { // read
         msgs.push(copy(msg))
         if (msgs.length === 4) {
           samo.close()
@@ -107,7 +107,7 @@ describe('Samo', () => {
           await samo.unpublish('things/' + id) // delete
         }
       }
-      samo.onmessage = async (msg) => { // read
+      samo.onmessage = (msg) => { // read
         msgs.push(copy(msg))
         if (msgs.length === samples * 3 + 1) {
           samo.close()
@@ -121,5 +121,50 @@ describe('Samo', () => {
     }))
     expect(result[0].length).toEqual(0)
     expect(result[result.length - 1].length).toEqual(0)
+  })
+
+  it('time', async () => {
+    const result = await page.evaluate(() => new Promise(async (resolve, reject) => {
+      const copy = (a) => JSON.parse(JSON.stringify(a))
+      const samo = Samo('localhost:8800/time')
+      let msgs = []
+      samo.onmessage = (msg) => { // read
+        msgs.push(copy(msg))
+        if (msgs.length === 2) {
+          samo.close()
+          resolve(msgs)
+        }
+      }
+      samo.onerror = (err) => {
+        samo.close(true)
+        reject(err)
+      }
+    }))
+    expect(result[0]).toBeGreaterThan(0)
+    expect(result[1]).toBeGreaterThan(0)
+  })
+
+  it('reconnect', async () => {
+    const result = await page.evaluate(() => new Promise(async (resolve, reject) => {
+      const samo = Samo('localhost:8800/sa/test')
+      let open = []
+      samo.onopen = () => {
+        open.push(true)
+      }
+      samo.onmessage = (msg) => { // read
+        if (open.length === 1) {
+          samo.close(true)
+        }
+        if (open.length === 2) {
+          samo.close()
+          resolve(open)
+        }
+      }
+      samo.onerror = (err) => {
+        samo.close(true)
+        reject(err)
+      }
+    }))
+    expect(result.length).toEqual(2)
   })
 })
