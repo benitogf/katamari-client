@@ -91,7 +91,7 @@ describe('Samo', () => {
       let msgs = []
       let ops = []
       let ids = []
-      const samples = 100
+      const samples = 10
       for (let i = 0; i < samples; i++) {
         ops.push(i)
       }
