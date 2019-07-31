@@ -4,55 +4,63 @@ import { applyPatch } from 'fast-json-patch'
 import ky from 'ky'
 
 // https://stackoverflow.com/questions/49123222/converting-array-buffer-to-string-maximum-call-stack-size-exceeded
-const binArrayToJson = (buf) => {
+const binaryStringToString = (buf) => {
   if ('TextDecoder' in window) {
     // Decode as UTF-8
     const dataView = new DataView(buf)
     const decoder = new TextDecoder('utf8')
-    return JSON.parse(decoder.decode(dataView))
+    return decoder.decode(dataView)
   }
 
-  return JSON.parse(new Uint8Array(buf).reduce((data, byte) =>
+  return new Uint8Array(buf).reduce((data, byte) =>
     data + String.fromCharCode(byte),
-    ''))
+    '')
 }
 
-const parseOp = (op) => typeof op.value === 'string' ?
-  op.value :
-  op.value.data !== undefined ?
-    op.value.data :
-    op.value
+const binaryStringToObject = (buf) => JSON.parse(binaryStringToString(buf))
 
-const parseOps = (data) => JSON.parse(Base64.decode(data)).map(op => {
+const binaryStringToInt = (buf) => parseInt(binaryStringToString(buf))
+
+const b64toObject = (str) => JSON.parse(Base64.decode(str))
+
+const objectToB64 = (obj) => Base64.encode(JSON.stringify(obj))
+
+const parseOp = (op) => typeof op.value === 'string' ?
+  op.value : op.value.data
+
+const parseOpData = (op) => b64toObject(parseOp(op))
+
+const parseOps = (data) => b64toObject(data).map(op => {
   if (op.op === 'add') {
     return {
       ...op,
       value: {
         ...op.value,
-        data: JSON.parse(Base64.decode(parseOp(op)))
+        data: parseOpData(op)
       }
     }
   }
   if (op.path.indexOf('data') !== -1) {
     return {
       ...op,
-      value: JSON.parse(Base64.decode(parseOp(op)))
+      value: parseOpData(op)
     }
   }
   return op
 })
 
-const parseMsg = (mode, data) => {
+const parseMsg = (mode, msg) => {
   if (mode === 'sa') {
-    return Object.assign(data, { data: JSON.parse(Base64.decode(data['data'])) })
+    return {
+      ...msg,
+      data: b64toObject(msg.data)
+    }
   }
-  if (Array.isArray(data)) {
-    return data.map((obj) => {
-      obj['data'] = JSON.parse(Base64.decode(obj['data']))
-      return obj
-    })
-  }
-  return []
+
+  return msg.map((obj) => ({
+    ...obj,
+    data: b64toObject(obj.data)
+  }))
 }
 
 const _samo = {
@@ -88,15 +96,14 @@ const _samo = {
   onresume: (event) => { },
 
   _time(event) {
-    this.onmessage(parseInt(binArrayToJson(event.data).data))
+    this.onmessage(binaryStringToInt(event.data))
   },
 
   _patch(data) {
-    const msg = binArrayToJson(data)
+    const msg = binaryStringToObject(data)
     if (msg.snapshot) {
-      const msgData = Base64.decode(msg.data)
-      const pre = msgData !== '' ? JSON.parse(msgData) : { created: 0, updated: 0, index: '', data: 'e30=' }
-      this.cache = parseMsg(this.mode, pre)
+      const entryData = b64toObject(msg.data)
+      this.cache = parseMsg(this.mode, entryData)
       return this.cache
     }
 
@@ -230,7 +237,7 @@ const _samo = {
     const res = await ky.post(
       this.httpUrl + '/r/' + key, {
         json: {
-          data: Base64.encode(JSON.stringify(data))
+          data: objectToB64(data)
         }
       }
     ).json()
