@@ -85,7 +85,6 @@ const _samo = {
   mode: null,
   bound: false,
   frozen: false,
-  isTime: false,
   // Set up the default 'noop' event handlers
   onopen: (event) => { },
   onclose: (event) => { },
@@ -195,7 +194,7 @@ const _samo = {
         this.reconnectInterval)
     }
 
-    this.ws.onmessage = (event) => this.isTime ? this._time(event) : this._data(event)
+    this.ws.onmessage = (event) => this.mode == 'time' ? this._time(event) : this._data(event)
     this.ws.onerror = this.onerror
 
 
@@ -226,10 +225,9 @@ const _samo = {
   async stats() {
     return ky.get(this.httpUrl).json()
   },
-  async get(url) {
-    const urlSplit = url.split('/')
+  async get(key) {
+    const urlSplit = key.split('/')
     const mode = urlSplit[0]
-    const key = url.replace(mode + '/', '')
     const data = await ky.get(this.httpUrl + '/r/' + key).json()
     return parseMsg(mode, data)
   },
@@ -250,18 +248,22 @@ const _samo = {
 }
 export default function (url, ssl, protocols = []) {
   let e = Object.assign({}, _samo)
-  if (url !== undefined) {
-    let urlSplit = url.split('/')
+  let urlSplit = url.split('/')
+  const modes = ['sa', 'mo', 'time']
+  if (urlSplit.length > 1 && modes.indexOf(urlSplit[1]) !== -1) {
     e.domain = urlSplit[0]
     e.mode = urlSplit[1]
     let wsProtocol = ssl ? 'wss://' : 'ws://'
     let httpProtocol = ssl ? 'https://' : 'http://'
     e.httpUrl = httpProtocol + e.domain
     e.wsUrl = wsProtocol + url
-    e.isTime = urlSplit[1] === 'time'
     e.protocols = protocols
     e.readyState = WebSocket.CONNECTING
     e.connect(false) // initialize connection
+    return e
   }
+
+  let httpProtocol = ssl ? 'https://' : 'http://'
+  e.httpUrl = httpProtocol + url
   return e
 }
