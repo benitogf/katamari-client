@@ -72,6 +72,7 @@ const spin = setInterval(() => {
     jasmine.onComplete((pass) => {
       kill(samo.pid)
       server.close()
+      process.exit(pass ? 0 : 1)
     })
   }
 }, 10)
