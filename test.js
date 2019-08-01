@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-const { spawn } = require('child_process')
+const { spawn, exec } = require('child_process')
+const psTree = require('ps-tree')
 const Jasmine = require('jasmine')
 const JasmineConsoleReporter = require('jasmine-console-reporter')
 const express = require('express')
@@ -12,20 +13,12 @@ let buildDone = false
 const kill = (pid) => {
   var isWin = /^win/.test(process.platform)
   if (!isWin) {
-    process.kill(pid)
+    psTree(pid, (_err, children) => {
+      spawn('kill', ['-9'].concat(children.map((p) => p.PID)))
+    })
   } else {
-    var cp = require('child_process')
-    cp.exec('taskkill /PID ' + pid + ' /T /F')
+    exec('taskkill /PID ' + pid + ' /T /F')
   }
-}
-
-const exit = (pass) => {
-  var isWin = /^win/.test(process.platform)
-  if (!isWin) {
-    process.exit(pass ? 0 : 1)
-  }
-
-  return
 }
 
 const build = spawn('npm run build', { shell: true })
@@ -78,10 +71,9 @@ const spin = setInterval(() => {
     jasmine.env.clearReporters()
     jasmine.addReporter(reporter)
     jasmine.execute()
-    jasmine.onComplete((pass) => {
+    jasmine.onComplete(() => {
       kill(samo.pid)
       server.close()
-      exit(pass)
     })
   }
 }, 10)

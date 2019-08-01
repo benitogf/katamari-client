@@ -136,7 +136,7 @@ describe('Samo', () => {
         }
       }
       samo.onerror = (err) => {
-        samo.close(true)
+        samo.close()
         reject(err)
       }
     }))
@@ -161,7 +161,7 @@ describe('Samo', () => {
         }
       }
       samo.onerror = (err) => {
-        samo.close(true)
+        samo.close()
         reject(err)
       }
     }))
@@ -170,7 +170,7 @@ describe('Samo', () => {
 
   it('keys', async () => {
     const result = await page.evaluate(() => new Promise(async (resolve) => {
-      const samo = Samo('localhost:8880', false, [], true)
+      const samo = Samo('localhost:8880')
       let result = []
       let stats = await samo.stats()
       result.push(stats.keys)
@@ -187,5 +187,36 @@ describe('Samo', () => {
     expect(result[1].length).toEqual(1)
     expect(result[1][0]).toEqual('box')
     expect(result[2].length).toEqual(0)
+  })
+
+  it('get', async () => {
+    const result = await page.evaluate(() => new Promise(async (resolve) => {
+      const samo = Samo('localhost:8880')
+      let result = []
+      let items = await samo.get('mo/*')
+      result.push(items)
+      await samo.publish('sa/box', { name: 'a box' }) // create
+      items = await samo.get('mo/*')
+      result.push(items)
+      await samo.unpublish('box') // delete
+      items = await samo.get('mo/*')
+      result.push(items)
+      await samo.publish('sa/box/1/things/1', { name: 'a thing in box 1' }) // create
+      items = await samo.get('mo/box/*/things/*')
+      result.push(items)
+      await samo.publish('sa/box/2/things/0', { name: 'a thing in box 2' }) // create
+      items = await samo.get('mo/box/*/things/*')
+      result.push(items)
+      resolve(result)
+    }))
+    expect(result.length).toEqual(5)
+    expect(result[0].length).toEqual(0)
+    expect(result[1].length).toEqual(1)
+    expect(result[1][0].data.name).toEqual('a box')
+    expect(result[2].length).toEqual(0)
+    expect(result[3].length).toEqual(1)
+    expect(result[3][0].data.name).toEqual('a thing in box 1')
+    expect(result[4].length).toEqual(2)
+    expect(result[4][0].data.name).toEqual('a thing in box 2')
   })
 })
