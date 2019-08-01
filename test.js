@@ -19,6 +19,15 @@ const kill = (pid) => {
   }
 }
 
+const exit = (pass) => {
+  var isWin = /^win/.test(process.platform)
+  if (!isWin) {
+    process.exit(pass ? 0 : 1)
+  }
+
+  return
+}
+
 const build = spawn('npm run build', { shell: true })
 build.stdout.on('close', () => {
   if (!buildDone) {
@@ -72,6 +81,7 @@ const spin = setInterval(() => {
     jasmine.onComplete((pass) => {
       kill(samo.pid)
       server.close()
+      exit(pass)
     })
   }
 }, 10)
