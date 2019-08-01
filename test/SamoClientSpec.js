@@ -5,7 +5,7 @@ describe('Samo', () => {
 
   beforeEach(async () => {
     browser = await puppeteer.launch({ args: ['--disable-setuid-sandbox', '--no-sandbox'], dumpio: true })
-    const url = `http://localhost:8080`
+    const url = `http://localhost:9468`
     page = await browser.newPage()
     await page.goto(url, { waitUntil: 'networkidle2' })
   })
@@ -20,7 +20,7 @@ describe('Samo', () => {
     const stillAbox = { name: 'still a box' }
     const result = await page.evaluate(() => new Promise(async (resolve, reject) => {
       const copy = (a) => JSON.parse(JSON.stringify(a))
-      const samo = Samo('localhost:8800/sa/box')
+      const samo = Samo('localhost:8880/sa/box')
       let msgs = []
       samo.onopen = async () => {
         await samo.publish('sa/box', { name: 'a box' }) // create
@@ -55,7 +55,7 @@ describe('Samo', () => {
     const stillSomething = { name: 'still something' }
     const result = await page.evaluate(() => new Promise(async (resolve, reject) => {
       const copy = (a) => JSON.parse(JSON.stringify(a))
-      const samo = Samo('localhost:8800/mo/box')
+      const samo = Samo('localhost:8880/mo/box')
       let msgs = []
       samo.onopen = async () => {
         const id = await samo.publish('mo/box', { name: 'something' }) // create
@@ -87,7 +87,7 @@ describe('Samo', () => {
   it('push', async () => {
     const result = await page.evaluate(() => new Promise(async (resolve, reject) => {
       const copy = (a) => JSON.parse(JSON.stringify(a))
-      const samo = Samo('localhost:8800/mo/things')
+      const samo = Samo('localhost:8880/mo/things')
       let msgs = []
       let ops = []
       let ids = []
@@ -126,7 +126,7 @@ describe('Samo', () => {
   it('time', async () => {
     const result = await page.evaluate(() => new Promise(async (resolve, reject) => {
       const copy = (a) => JSON.parse(JSON.stringify(a))
-      const samo = Samo('localhost:8800/time')
+      const samo = Samo('localhost:8880/time')
       let msgs = []
       samo.onmessage = (msg) => { // read
         msgs.push(copy(msg))
@@ -146,7 +146,7 @@ describe('Samo', () => {
 
   it('reconnect', async () => {
     const result = await page.evaluate(() => new Promise(async (resolve, reject) => {
-      const samo = Samo('localhost:8800/sa/test')
+      const samo = Samo('localhost:8880/sa/test')
       let open = []
       samo.onopen = () => {
         open.push(true)
@@ -166,5 +166,26 @@ describe('Samo', () => {
       }
     }))
     expect(result.length).toEqual(2)
+  })
+
+  it('keys', async () => {
+    const result = await page.evaluate(() => new Promise(async (resolve) => {
+      const samo = Samo('localhost:8880', false, [], true)
+      let result = []
+      let stats = await samo.stats()
+      result.push(stats.keys)
+      await samo.publish('sa/box', { name: 'a box' }) // create
+      stats = await samo.stats()
+      result.push(stats.keys)
+      await samo.unpublish('box') // delete
+      stats = await samo.stats()
+      result.push(stats.keys)
+      resolve(result)
+    }))
+    expect(result.length).toEqual(3)
+    expect(result[0].length).toEqual(0)
+    expect(result[1].length).toEqual(1)
+    expect(result[1][0]).toEqual('box')
+    expect(result[2].length).toEqual(0)
   })
 })

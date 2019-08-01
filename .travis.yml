@@ -13,14 +13,7 @@ services:
 
 install:
   - go get github.com/benitogf/samo
-  - npm install -g http-server
   - npm install
 
-before_script:
-  - npm run build
-
 script:
-  - nohup go run main.go &
-  - nohup http-server &
-  - sleep 5
   - npm test

@@ -1,6 +1,6 @@
 {
   "name": "samo-js-client",
-  "version": "5.1.0",
+  "version": "5.1.2",
   "description": "js client for samo",
   "main": "samo.js",
   "typings": "samo.d.ts",
@@ -21,6 +21,7 @@
     "ky": "^0.11.2"
   },
   "devDependencies": {
+    "express": "^4.17.1",
     "jasmine": "^3.4.0",
     "jasmine-console-reporter": "^3.1.0",
     "puppeteer": "^1.19.0",

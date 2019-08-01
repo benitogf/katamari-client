@@ -226,10 +226,9 @@ const _samo = {
   async stats() {
     return ky.get(this.httpUrl).json()
   },
-  async get(url) {
+  async get(key) {
     const urlSplit = url.split('/')
     const mode = urlSplit[0]
-    const key = url.replace(mode + '/', '')
     const data = await ky.get(this.httpUrl + '/r/' + key).json()
     return parseMsg(mode, data)
   },
@@ -248,9 +247,9 @@ const _samo = {
     return ky.delete(this.httpUrl + '/r/' + key)
   }
 }
-export default function (url, ssl, protocols = []) {
+export default function (url, ssl, protocols = [], closed) {
   let e = Object.assign({}, _samo)
-  if (url !== undefined) {
+  if (!closed) {
     let urlSplit = url.split('/')
     e.domain = urlSplit[0]
     e.mode = urlSplit[1]
@@ -262,6 +261,10 @@ export default function (url, ssl, protocols = []) {
     e.protocols = protocols
     e.readyState = WebSocket.CONNECTING
     e.connect(false) // initialize connection
+    return e
   }
+
+  let httpProtocol = ssl ? 'https://' : 'http://'
+  e.httpUrl = httpProtocol + url
   return e
 }
