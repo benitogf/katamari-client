@@ -12,7 +12,7 @@ let buildDone = false
 const kill = (pid) => {
   var isWin = /^win/.test(process.platform)
   if (!isWin) {
-    kill(pid)
+    process.kill(pid)
   } else {
     var cp = require('child_process')
     cp.exec('taskkill /PID ' + pid + ' /T /F')
@@ -72,7 +72,6 @@ const spin = setInterval(() => {
     jasmine.onComplete((pass) => {
       kill(samo.pid)
       server.close()
-      process.exit(pass ? 0 : 1)
     })
   }
 }, 10)
