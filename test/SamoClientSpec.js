@@ -14,17 +14,17 @@ describe('Samo', () => {
     if (browser) await browser.close()
   })
 
-  it('sa', async () => {
+  it('object', async () => {
     const empty = { created: 0, updated: 0, index: '', data: {} }
     const aBox = { name: 'a box' }
     const stillAbox = { name: 'still a box' }
     const result = await page.evaluate(() => new Promise(async (resolve, reject) => {
       const copy = (a) => JSON.parse(JSON.stringify(a))
-      const samo = Samo('localhost:8880/sa/box')
+      const samo = Samo('localhost:8880/box')
       let msgs = []
       samo.onopen = async () => {
-        await samo.publish('sa/box', { name: 'a box' }) // create
-        await samo.publish('sa/box', { name: 'still a box' }) // update
+        await samo.publish('box', { name: 'a box' }) // create
+        await samo.publish('box', { name: 'still a box' }) // update
         await samo.unpublish('box') // delete
       }
       samo.onmessage = (msg) => { // read
@@ -50,16 +50,16 @@ describe('Samo', () => {
     expect(result[3]).toEqual(empty)
   })
 
-  it('mo', async () => {
+  it('list', async () => {
     const something = { name: 'something' }
     const stillSomething = { name: 'still something' }
     const result = await page.evaluate(() => new Promise(async (resolve, reject) => {
       const copy = (a) => JSON.parse(JSON.stringify(a))
-      const samo = Samo('localhost:8880/mo/box')
+      const samo = Samo('localhost:8880/box/*')
       let msgs = []
       samo.onopen = async () => {
-        const id = await samo.publish('mo/box', { name: 'something' }) // create
-        await samo.publish('sa/box/' + id, { name: 'still something' }) // update
+        const id = await samo.publish('box/*', { name: 'something' }) // create
+        await samo.publish('box/' + id, { name: 'still something' }) // update
         await samo.unpublish('box/' + id) // delete
       }
       samo.onmessage = (msg) => { // read
@@ -87,7 +87,7 @@ describe('Samo', () => {
   it('push', async () => {
     const result = await page.evaluate(() => new Promise(async (resolve, reject) => {
       const copy = (a) => JSON.parse(JSON.stringify(a))
-      const samo = Samo('localhost:8880/mo/things')
+      const samo = Samo('localhost:8880/things/*')
       let msgs = []
       let ops = []
       let ids = []
@@ -97,11 +97,11 @@ describe('Samo', () => {
       }
       samo.onopen = async () => {
         for (let op of ops) {
-          let id = await samo.publish('mo/things', { name: 'name' + op }) // create
+          let id = await samo.publish('things/*', { name: 'name' + op }) // create
           ids.push(id)
         }
         for (let id of ids) {
-          await samo.publish('sa/things/' + id, { name: 'name' + id }) // update
+          await samo.publish('things/' + id, { name: 'name' + id }) // update
         }
         for (let id of ids) {
           await samo.unpublish('things/' + id) // delete
@@ -126,7 +126,7 @@ describe('Samo', () => {
   it('time', async () => {
     const result = await page.evaluate(() => new Promise(async (resolve, reject) => {
       const copy = (a) => JSON.parse(JSON.stringify(a))
-      const samo = Samo('localhost:8880/time')
+      const samo = Samo('localhost:8880')
       let msgs = []
       samo.onmessage = (msg) => { // read
         msgs.push(copy(msg))
@@ -146,7 +146,7 @@ describe('Samo', () => {
 
   it('reconnect', async () => {
     const result = await page.evaluate(() => new Promise(async (resolve, reject) => {
-      const samo = Samo('localhost:8880/sa/test')
+      const samo = Samo('localhost:8880/test')
       let open = []
       samo.onopen = () => {
         open.push(true)
@@ -170,11 +170,12 @@ describe('Samo', () => {
 
   it('keys', async () => {
     const result = await page.evaluate(() => new Promise(async (resolve) => {
-      const samo = Samo('localhost:8880')
+      const samo = Samo()
+      samo.httpUrl = 'http://localhost:8880'
       let result = []
       let stats = await samo.stats()
       result.push(stats.keys)
-      await samo.publish('sa/box', { name: 'a box' }) // create
+      await samo.publish('box', { name: 'a box' }) // create
       stats = await samo.stats()
       result.push(stats.keys)
       await samo.unpublish('box') // delete
@@ -191,21 +192,22 @@ describe('Samo', () => {
 
   it('get', async () => {
     const result = await page.evaluate(() => new Promise(async (resolve) => {
-      const samo = Samo('localhost:8880')
+      const samo = Samo()
+      samo.httpUrl = 'http://localhost:8880'
       let result = []
-      let items = await samo.get('mo/*')
+      let items = await samo.get('*')
       result.push(items)
-      await samo.publish('sa/box', { name: 'a box' }) // create
-      items = await samo.get('mo/*')
+      await samo.publish('box', { name: 'a box' }) // create
+      items = await samo.get('*')
       result.push(items)
       await samo.unpublish('box') // delete
-      items = await samo.get('mo/*')
+      items = await samo.get('*')
       result.push(items)
-      await samo.publish('sa/box/1/things/1', { name: 'a thing in box 1' }) // create
-      items = await samo.get('mo/box/*/things/*')
+      await samo.publish('box/1/things/1', { name: 'a thing in box 1' }) // create
+      items = await samo.get('box/*/things/*')
       result.push(items)
-      await samo.publish('sa/box/2/things/0', { name: 'a thing in box 2' }) // create
-      items = await samo.get('mo/box/*/things/*')
+      await samo.publish('box/2/things/0', { name: 'a thing in box 2' }) // create
+      items = await samo.get('box/*/things/*')
       result.push(items)
       resolve(result)
     }))
