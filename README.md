@@ -22,16 +22,15 @@ Messages will arrive either as a snapshot or a [patch](https://json-patch-builde
 npm i samo-js-client
 ```
 
-#### SA
+#### object
 ```js
 import Samo from 'samo-js-client'
 
-const address = 'localhost:8800'
-const samo = Samo('localhost:8800/sa/box')
+const samo = Samo('localhost:8800/box')
 let msgs = []
 samo.onopen = async () => {
-  await samo.publish('sa/box', { name: "a box" }) // create
-  await samo.publish('sa/box', { name: "still a box" }) // update
+  await samo.publish('box', { name: "a box" }) // create
+  await samo.publish('box', { name: "still a box" }) // update
   await samo.unpublish('box') // delete
 }
 samo.onmessage = async (msg) => { // read
@@ -46,13 +45,15 @@ samo.onerror = (err) => {
 }
 ```
 
-#### MO
+#### list
 ```js
-const samo = Samo('localhost:8800/mo/box')
+import Samo from 'samo-js-client'
+
+const samo = Samo('localhost:8800/box/*')
 let msgs = []
 samo.onopen = async () => {
-  const id = await samo.publish('mo/box', { name: "something" }) // create
-  await samo.publish('sa/box/' + id, { name: "still something" }) // update
+  const id = await samo.publish('box/*', { name: "something" }) // create
+  await samo.publish('box/' + id, { name: "still something" }) // update
   await samo.unpublish('box/'+id) // delete
 }
 samo.onmessage = async (msg) => { // read

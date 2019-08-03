@@ -228,12 +228,12 @@ const _samo = {
   async get(key) {
     const urlSplit = key.split('/')
     const mode = urlSplit[0]
-    const data = await ky.get(this.httpUrl + '/r/' + key).json()
+    const data = await ky.get(this.httpUrl + '/' + key).json()
     return parseMsg(mode, data)
   },
   async publish(key, data) {
     const res = await ky.post(
-      this.httpUrl + '/r/' + key, {
+      this.httpUrl + '/' + key, {
         json: {
           data: objectToB64(data)
         }
@@ -243,16 +243,21 @@ const _samo = {
     return res.index
   },
   async unpublish(key) {
-    return ky.delete(this.httpUrl + '/r/' + key)
+    return ky.delete(this.httpUrl + '/' + key)
   }
 }
 export default function (url, ssl, protocols = []) {
   let e = Object.assign({}, _samo)
-  let urlSplit = url.split('/')
-  const modes = ['sa', 'mo', 'time']
-  if (urlSplit.length > 1 && modes.indexOf(urlSplit[1]) !== -1) {
+  if (url !== undefined) {
+    let urlSplit = url.split('/')
     e.domain = urlSplit[0]
-    e.mode = urlSplit[1]
+    e.mode = 'sa'
+    if (url.indexOf('*') !== -1) {
+      e.mode = 'mo'
+    }
+    if (urlSplit.length === 1) {
+      e.mode = 'time'
+    }
     let wsProtocol = ssl ? 'wss://' : 'ws://'
     let httpProtocol = ssl ? 'https://' : 'http://'
     e.httpUrl = httpProtocol + e.domain
@@ -263,7 +268,5 @@ export default function (url, ssl, protocols = []) {
     return e
   }
 
-  let httpProtocol = ssl ? 'https://' : 'http://'
-  e.httpUrl = httpProtocol + url
   return e
 }
