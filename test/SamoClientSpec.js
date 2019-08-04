@@ -88,7 +88,7 @@ describe('Samo', () => {
     expect(result[3].length).toEqual(0)
   })
 
-  it('push', async () => {
+  it('list delete', async () => {
     const result = await page.evaluate(() => new Promise(async (resolve, reject) => {
       const copy = (a) => JSON.parse(JSON.stringify(a))
       const samo = Samo('localhost:8880/things/*')
@@ -107,13 +107,11 @@ describe('Samo', () => {
         for (let id of ids) {
           await samo.publish('things/' + id, { name: 'name' + id }) // update
         }
-        for (let id of ids) {
-          await samo.unpublish('things/' + id) // delete
-        }
+        await samo.unpublish('things/*') // delete
       }
       samo.onmessage = (msg) => { // read
         msgs.push(copy(msg))
-        if (msgs.length === samples * 3 + 1) {
+        if (msgs.length === samples * 2 + 2) {
           samo.close()
           resolve(msgs)
         }
