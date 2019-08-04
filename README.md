@@ -54,11 +54,12 @@ let msgs = []
 samo.onopen = async () => {
   const id = await samo.publish('box/*', { name: 'something 🧰' }) // create
   await samo.publish('box/' + id, { name: 'still something 💾' }) // update
-  await samo.unpublish('box/' + id) // delete
+  await samo.publish('box/custom', { name: 'custom something 🧰' }) // create
+  await samo.unpublish('box/*') // delete list
 }
 samo.onmessage = async (msg) => { // read
   msgs.push(msg)
-  if (msgs.length === 4) {
+  if (msgs.length === 5) {
     samo.close()
     console.log(msgs)
   }
