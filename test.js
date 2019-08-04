@@ -72,8 +72,18 @@ const spin = setInterval(() => {
     jasmine.addReporter(reporter)
     jasmine.execute()
     jasmine.onComplete(() => {
-      kill(samo.pid)
       server.close()
+      kill(samo.pid)
     })
   }
 }, 10)
+
+function exitHandler(options) {
+  if (options.cleanup) kill(samo.pid)
+  if (options.exit) process.exit()
+}
+process.on('exit', exitHandler.bind(null, { cleanup: true }))
+process.on('SIGINT', exitHandler.bind(null, { exit: true }))
+process.on('SIGUSR1', exitHandler.bind(null, { exit: true }))
+process.on('SIGUSR2', exitHandler.bind(null, { exit: true }))
+process.on('uncaughtException', exitHandler.bind(null, { exit: true }))
