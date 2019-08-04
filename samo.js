@@ -5,16 +5,9 @@ import ky from 'ky'
 
 // https://stackoverflow.com/questions/49123222/converting-array-buffer-to-string-maximum-call-stack-size-exceeded
 const binaryStringToString = (buf) => {
-  if ('TextDecoder' in window) {
-    // Decode as UTF-8
-    const dataView = new DataView(buf)
-    const decoder = new TextDecoder('utf8')
-    return decoder.decode(dataView)
-  }
-
-  return new Uint8Array(buf).reduce((data, byte) =>
-    data + String.fromCharCode(byte),
-    '')
+  const dataView = new DataView(buf)
+  const decoder = new TextDecoder('utf8')
+  return decoder.decode(dataView)
 }
 
 const binaryStringToObject = (buf) => JSON.parse(binaryStringToString(buf))
@@ -25,42 +18,22 @@ const b64toObject = (str) => JSON.parse(Base64.decode(str))
 
 const objectToB64 = (obj) => Base64.encode(JSON.stringify(obj))
 
-const parseOp = (op) => typeof op.value === 'string' ?
-  op.value : op.value.data
-
-const parseOpData = (op) => b64toObject(parseOp(op))
-
-const parseOps = (data) => b64toObject(data).map(op => {
-  if (op.op === 'add') {
-    return {
-      ...op,
-      value: {
-        ...op.value,
-        data: parseOpData(op)
-      }
-    }
-  }
-  if (op.path.indexOf('data') !== -1) {
-    return {
-      ...op,
-      value: parseOpData(op)
-    }
-  }
-  return op
+const parseEntry = (entry) => ({
+  ...entry,
+  data: b64toObject(entry.data)
 })
 
-const parseMsg = (mode, msg) => {
-  if (mode === 'sa') {
-    return {
-      ...msg,
-      data: b64toObject(msg.data)
-    }
+const parseMsg = (msg) => Array.isArray(msg) ?
+  msg.map(parseEntry) : parseEntry(msg)
+
+const patch = (data, cache) => {
+  const msg = binaryStringToObject(data)
+  if (msg.snapshot) {
+    return b64toObject(msg.data)
   }
 
-  return msg.map((obj) => ({
-    ...obj,
-    data: b64toObject(obj.data)
-  }))
+  const ops = b64toObject(msg.data)
+  return applyPatch(cache, ops).newDocument
 }
 
 const _samo = {
@@ -98,22 +71,9 @@ const _samo = {
     this.onmessage(binaryStringToInt(event.data))
   },
 
-  _patch(data) {
-    const msg = binaryStringToObject(data)
-    if (msg.snapshot) {
-      const entryData = b64toObject(msg.data)
-      this.cache = parseMsg(this.mode, entryData)
-      return this.cache
-    }
-
-    const ops = parseOps(msg.data)
-    this.cache = applyPatch(this.cache, ops).newDocument
-    return this.cache
-  },
-
   _data(event) {
-    const patch = this._patch(event.data)
-    this.onmessage(patch)
+    this.cache = patch(event.data, this.cache)
+    this.onmessage(parseMsg(this.cache))
   },
 
   _onfrozen(event) {
@@ -213,6 +173,7 @@ const _samo = {
     }
     document.addEventListener('resume', this._boundOnResume, { capture: true })
   },
+
   close(reload) {
     if (this.ws) {
       this.forcedClose = !reload
@@ -222,14 +183,13 @@ const _samo = {
     }
     return false
   },
+
   async stats() {
     return ky.get(this.httpUrl).json()
   },
   async get(key) {
-    const urlSplit = key.split('/')
-    const mode = urlSplit[0]
     const data = await ky.get(this.httpUrl + '/' + key).json()
-    return parseMsg(mode, data)
+    return parseMsg(data)
   },
   async publish(key, data) {
     const res = await ky.post(

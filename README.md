@@ -29,8 +29,8 @@ import Samo from 'samo-js-client'
 const samo = Samo('localhost:8800/box')
 let msgs = []
 samo.onopen = async () => {
-  await samo.publish('box', { name: "a box" }) // create
-  await samo.publish('box', { name: "still a box" }) // update
+  await samo.publish('box', { name: 'something 🧰' }) // create
+  await samo.publish('box', { name: 'still something 💾' }) // update
   await samo.unpublish('box') // delete
 }
 samo.onmessage = async (msg) => { // read
@@ -52,9 +52,9 @@ import Samo from 'samo-js-client'
 const samo = Samo('localhost:8800/box/*')
 let msgs = []
 samo.onopen = async () => {
-  const id = await samo.publish('box/*', { name: "something" }) // create
-  await samo.publish('box/' + id, { name: "still something" }) // update
-  await samo.unpublish('box/'+id) // delete
+  const id = await samo.publish('box/*', { name: 'something 🧰' }) // create
+  await samo.publish('box/' + id, { name: 'still something 💾' }) // update
+  await samo.unpublish('box/' + id) // delete
 }
 samo.onmessage = async (msg) => { // read
   msgs.push(msg)

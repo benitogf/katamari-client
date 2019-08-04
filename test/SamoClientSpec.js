@@ -16,15 +16,17 @@ describe('Samo', () => {
 
   it('object', async () => {
     const empty = { created: 0, updated: 0, index: '', data: {} }
-    const aBox = { name: 'a box' }
-    const stillAbox = { name: 'still a box' }
-    const result = await page.evaluate(() => new Promise(async (resolve, reject) => {
+    const state = [
+      { name: 'a box 🧰' },
+      { name: 'still a box 💾' }
+    ]
+    const result = await page.evaluate((state) => new Promise(async (resolve, reject) => {
       const copy = (a) => JSON.parse(JSON.stringify(a))
       const samo = Samo('localhost:8880/box')
       let msgs = []
       samo.onopen = async () => {
-        await samo.publish('box', { name: 'a box' }) // create
-        await samo.publish('box', { name: 'still a box' }) // update
+        await samo.publish('box', state[0]) // create
+        await samo.publish('box', state[1]) // update
         await samo.unpublish('box') // delete
       }
       samo.onmessage = (msg) => { // read
@@ -38,28 +40,30 @@ describe('Samo', () => {
         samo.close()
         reject(err)
       }
-    }))
+    }), state)
     expect(result[0]).toEqual(empty)
     expect(result[1].created).toBeGreaterThan(0)
     expect(result[1].updated).toEqual(0)
     expect(result[1].index).toEqual('box')
-    expect(result[1].data).toEqual(aBox)
+    expect(result[1].data).toEqual(state[0])
     expect(result[2].created).toBeGreaterThan(0)
     expect(result[2].updated).toBeGreaterThan(0)
-    expect(result[2].data).toEqual(stillAbox)
+    expect(result[2].data).toEqual(state[1])
     expect(result[3]).toEqual(empty)
   })
 
   it('list', async () => {
-    const something = { name: 'something' }
-    const stillSomething = { name: 'still something' }
-    const result = await page.evaluate(() => new Promise(async (resolve, reject) => {
+    const state = [
+      { name: 'something 🧰' },
+      { name: 'still something 💾' }
+    ]
+    const result = await page.evaluate((state) => new Promise(async (resolve, reject) => {
       const copy = (a) => JSON.parse(JSON.stringify(a))
       const samo = Samo('localhost:8880/box/*')
       let msgs = []
       samo.onopen = async () => {
-        const id = await samo.publish('box/*', { name: 'something' }) // create
-        await samo.publish('box/' + id, { name: 'still something' }) // update
+        const id = await samo.publish('box/*', state[0]) // create
+        await samo.publish('box/' + id, state[1]) // update
         await samo.unpublish('box/' + id) // delete
       }
       samo.onmessage = (msg) => { // read
@@ -73,14 +77,14 @@ describe('Samo', () => {
         samo.close()
         reject(err)
       }
-    }))
+    }), state)
     expect(result[0].length).toEqual(0)
     expect(result[1][0].created).toBeGreaterThan(0)
     expect(result[1][0].updated).toEqual(0)
-    expect(result[1][0].data).toEqual(something)
+    expect(result[1][0].data).toEqual(state[0])
     expect(result[2][0].created).toBeGreaterThan(0)
     expect(result[2][0].updated).toBeGreaterThan(0)
-    expect(result[2][0].data).toEqual(stillSomething)
+    expect(result[2][0].data).toEqual(state[1])
     expect(result[3].length).toEqual(0)
   })
 
@@ -209,9 +213,11 @@ describe('Samo', () => {
       await samo.publish('box/2/things/0', { name: 'a thing in box 2' }) // create
       items = await samo.get('box/*/things/*')
       result.push(items)
+      items = await samo.get('box/2/things/0')
+      result.push(items)
       resolve(result)
     }))
-    expect(result.length).toEqual(5)
+    expect(result.length).toEqual(6)
     expect(result[0].length).toEqual(0)
     expect(result[1].length).toEqual(1)
     expect(result[1][0].data.name).toEqual('a box')
@@ -220,5 +226,6 @@ describe('Samo', () => {
     expect(result[3][0].data.name).toEqual('a thing in box 1')
     expect(result[4].length).toEqual(2)
     expect(result[4][0].data.name).toEqual('a thing in box 2')
+    expect(result[5].data.name).toEqual('a thing in box 2')
   })
 })
