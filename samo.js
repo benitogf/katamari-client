@@ -77,7 +77,6 @@ const _samo = {
   },
 
   _onfrozen(event) {
-    this.onfrozen(event)
     if (!this.frozen) {
       this.frozen = true
       if (this.ws) {
@@ -85,10 +84,10 @@ const _samo = {
         this.ws.close()
       }
     }
+    this.onfrozen(event)
   },
 
   _onresume(event) {
-    this.onresume(event)
     if (this.ws && (this.frozen || this.forcedClose) && this.readyState !== WebSocket.CLOSED && this.readyState !== WebSocket.CLOSING) {
       this.readyState = WebSocket.CLOSING
       this.ws.close()
@@ -96,10 +95,11 @@ const _samo = {
     if (this.frozen && !this.forcedClose) {
       const intervalID = window.setInterval(() => {
         if (this.readyState === WebSocket.CLOSED) {
+          clearInterval(intervalID)
           document.removeEventListener('resume', this._boundOnResume)
           this.connect()
           this.frozen = false
-          clearInterval(intervalID)
+          this.onresume(event)
         }
       }, 500)
     } else {
@@ -137,7 +137,6 @@ const _samo = {
         this.readyState = WebSocket.CLOSED
         this.ws = null
         document.removeEventListener('freeze', this._boundOnFrozen)
-        document.removeEventListener('pause', this._boundOnFrozen)
         this.onclose(event)
         return
       }
@@ -163,14 +162,9 @@ const _samo = {
       this._boundOnResume = this._onresume.bind(this)
       this.bound = true
     }
-    // https://wicg.github.io/page-lifecycle/spec.html#html-task-source-dfn
-    // https://cordova.apache.org/docs/en/latest/guide/platforms/android/index.html#lifecycle-guide
-    document.addEventListener('freeze', this._boundOnFrozen, { capture: true, once: true })
 
-    // https://github.com/apache/cordova-browser/issues/79
-    if (navigator.userAgent.match(/Android|iPhone|iPad|iPod/i)) {
-      document.addEventListener('pause', this._boundOnFrozen, { capture: true, once: true })
-    }
+    // https://wicg.github.io/page-lifecycle/spec.html#html-task-source-dfn
+    document.addEventListener('freeze', this._boundOnFrozen, { capture: true, once: true })
     document.addEventListener('resume', this._boundOnResume, { capture: true })
   },
 

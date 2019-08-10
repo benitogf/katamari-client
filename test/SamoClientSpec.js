@@ -170,6 +170,33 @@ describe('Samo', () => {
     expect(result.length).toEqual(2)
   })
 
+  it('lifecycle', async () => {
+    const result = await page.evaluate(() => new Promise(async (resolve, reject) => {
+      const samo = Samo('localhost:8880/test')
+      let open = []
+      samo.onopen = () => {
+        open.push(true)
+      }
+      samo.onmessage = (msg) => { // read
+        if (open.length === 1) {
+          document.dispatchEvent(new Event('freeze'))
+          setTimeout(() => {
+            document.dispatchEvent(new Event('resume'))
+          }, 300)
+        }
+        if (open.length === 2) {
+          samo.close()
+          resolve(open)
+        }
+      }
+      samo.onerror = (err) => {
+        samo.close()
+        reject(err)
+      }
+    }))
+    expect(result.length).toEqual(2)
+  })
+
   it('keys', async () => {
     const result = await page.evaluate(() => new Promise(async (resolve) => {
       const samo = Samo()
