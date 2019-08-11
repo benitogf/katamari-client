@@ -77,36 +77,19 @@ const _samo = {
   },
 
   _onfrozen(event) {
-    if (!this.frozen) {
-      this.frozen = true
-      if (this.ws) {
-        this.readyState = WebSocket.CLOSING
-        this.ws.close()
-      }
+    this.frozen = true
+    if (this.ws) {
+      this.readyState = WebSocket.CLOSING
+      this.ws.close()
     }
     this.onfrozen(event)
   },
 
   _onresume(event) {
-    if (this.ws && (this.frozen || this.forcedClose) && this.readyState !== WebSocket.CLOSED && this.readyState !== WebSocket.CLOSING) {
-      this.readyState = WebSocket.CLOSING
-      this.ws.close()
-    }
-    if (this.frozen && !this.forcedClose) {
-      const intervalID = window.setInterval(() => {
-        if (this.readyState === WebSocket.CLOSED) {
-          clearInterval(intervalID)
-          document.removeEventListener('resume', this._boundOnResume)
-          this.connect()
-          this.frozen = false
-          this.onresume(event)
-        }
-      }, 500)
-    } else {
-      if (this.forcedClose) {
-        document.removeEventListener('resume', this._boundOnResume)
-      }
-    }
+    document.removeEventListener('resume', this._boundOnResume)
+    this.connect()
+    this.frozen = false
+    this.onresume(event)
   },
 
   connect(reconnectAttempt) {
@@ -224,3 +207,4 @@ export default function (url, ssl, protocols = []) {
 
   return e
 }
+
