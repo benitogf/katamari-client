@@ -153,6 +153,7 @@ describe('Samo', () => {
       samo.onopen = () => {
         open.push(true)
         if (open.length === 2) {
+          open.push(samo.ws.url)
           samo.close()
           resolve(open)
         }
@@ -167,7 +168,8 @@ describe('Samo', () => {
         reject(err)
       }
     }))
-    expect(result.length).toEqual(2)
+    expect(result.length).toEqual(3)
+    expect(result[2].indexOf('?v=')).toBeGreaterThan(-1)
   })
 
   it('lifecycle', async () => {
