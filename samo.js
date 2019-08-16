@@ -38,6 +38,7 @@ const patch = (msg, cache) => {
 const _samo = {
   // cache
   cache: null,
+  version: null,
   // Time to wait before attempting reconnect (after close)
   reconnectInterval: 3000,
   // Time to wait for WebSocket to open (before aborting and retrying)
@@ -72,7 +73,7 @@ const _samo = {
 
   _data(event) {
     const msg = binaryStringToObject(event.data)
-    window.localStorage.setItem(this.wsUrl + ':version', msg.version)
+    this.version = msg.version
     this.cache = patch(msg, this.cache)
     this.onmessage(parseMsg(this.cache))
   },
@@ -94,8 +95,7 @@ const _samo = {
   },
 
   connect(reconnectAttempt, resuming) {
-    const version = window.localStorage.getItem(this.wsUrl + ':version')
-    const versionUrl = (reconnectAttempt || resuming) && version ? '?v=' + version : ''
+    const versionUrl = (reconnectAttempt || resuming) && this.version ? '?v=' + this.version : ''
     this.ws = new WebSocket(this.wsUrl + versionUrl, this.protocols)
     this.ws.binaryType = "arraybuffer"
 
