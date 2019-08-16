@@ -26,8 +26,7 @@ const parseEntry = (entry) => ({
 const parseMsg = (msg) => Array.isArray(msg) ?
   msg.map(parseEntry) : parseEntry(msg)
 
-const patch = (data, cache) => {
-  const msg = binaryStringToObject(data)
+const patch = (msg, cache) => {
   if (msg.snapshot) {
     return b64toObject(msg.data)
   }
@@ -72,7 +71,9 @@ const _samo = {
   },
 
   _data(event) {
-    this.cache = patch(event.data, this.cache)
+    const msg = binaryStringToObject(event.data)
+    window.localStorage.setItem(this.wsUrl + ':version', msg.version)
+    this.cache = patch(msg, this.cache)
     this.onmessage(parseMsg(this.cache))
   },
 
@@ -87,13 +88,15 @@ const _samo = {
 
   _onresume(event) {
     document.removeEventListener('resume', this._boundOnResume)
-    this.connect()
+    this.connect(false, true)
     this.frozen = false
     this.onresume(event)
   },
 
-  connect(reconnectAttempt) {
-    this.ws = new WebSocket(this.wsUrl, this.protocols)
+  connect(reconnectAttempt, resuming) {
+    const version = window.localStorage.getItem(this.wsUrl + ':version')
+    const versionUrl = (reconnectAttempt || resuming) && version ? '?v=' + version : ''
+    this.ws = new WebSocket(this.wsUrl + versionUrl, this.protocols)
     this.ws.binaryType = "arraybuffer"
 
     this.onconnecting()
@@ -207,4 +210,5 @@ export default function (url, ssl, protocols = []) {
 
   return e
 }
+
 

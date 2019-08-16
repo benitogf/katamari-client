@@ -152,14 +152,14 @@ describe('Samo', () => {
       let open = []
       samo.onopen = () => {
         open.push(true)
+        if (open.length === 2) {
+          samo.close()
+          resolve(open)
+        }
       }
       samo.onmessage = (msg) => { // read
         if (open.length === 1) {
           samo.close(true)
-        }
-        if (open.length === 2) {
-          samo.close()
-          resolve(open)
         }
       }
       samo.onerror = (err) => {
@@ -176,6 +176,11 @@ describe('Samo', () => {
       let open = []
       samo.onopen = () => {
         open.push(true)
+        if (open.length === 2) {
+          open.push(samo.ws.url)
+          samo.close()
+          resolve(open)
+        }
       }
       samo.onmessage = (msg) => { // read
         if (open.length === 1) {
@@ -184,17 +189,14 @@ describe('Samo', () => {
             document.dispatchEvent(new Event('resume'))
           }, 300)
         }
-        if (open.length === 2) {
-          samo.close()
-          resolve(open)
-        }
       }
       samo.onerror = (err) => {
         samo.close()
         reject(err)
       }
     }))
-    expect(result.length).toEqual(2)
+    expect(result.length).toEqual(3)
+    expect(result[2].indexOf('?v=')).toBeGreaterThan(-1)
   })
 
   it('keys', async () => {
