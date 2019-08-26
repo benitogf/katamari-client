@@ -1,9 +1,9 @@
 {
-  "name": "samo-js-client",
-  "version": "6.0.5",
-  "description": "js client for samo",
-  "main": "samo.js",
-  "typings": "samo.d.ts",
+  "name": "katamari-client",
+  "version": "6.0.6",
+  "description": "js client for katamari",
+  "main": "katamari.js",
+  "typings": "katamari.d.ts",
   "scripts": {
     "start": "rollup -c -w",
     "build": "rollup -c",
@@ -13,12 +13,12 @@
     "name": "Benito Gomez",
     "email": "benitogf@outlook.com"
   },
-  "homepage": "https://github.com/benitogf/samo-js-client",
+  "homepage": "https://github.com/benitogf/katamari-client",
   "license": "MIT",
   "dependencies": {
-    "fast-json-patch": "^2.2.0",
+    "fast-json-patch": "^3.0.0-0",
     "js-base64": "^2.5.1",
-    "ky": "^0.11.2"
+    "ky": "^0.12.0"
   },
   "devDependencies": {
     "express": "^4.17.1",
@@ -26,7 +26,7 @@
     "jasmine-console-reporter": "^3.1.0",
     "ps-tree": "^1.2.0",
     "puppeteer": "^1.19.0",
-    "rollup": "^1.18.0",
+    "rollup": "^1.20.2",
     "rollup-plugin-commonjs": "^10.0.2",
     "rollup-plugin-node-resolve": "^5.2.0"
   }

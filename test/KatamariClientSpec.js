@@ -1,5 +1,5 @@
 const puppeteer = require('puppeteer')
-describe('Samo', () => {
+describe('Katamari', () => {
   let browser = undefined
   let page = undefined
 
@@ -22,22 +22,22 @@ describe('Samo', () => {
     ]
     const result = await page.evaluate((state) => new Promise(async (resolve, reject) => {
       const copy = (a) => JSON.parse(JSON.stringify(a))
-      const samo = Samo('localhost:8880/box')
+      const client = Katamari('localhost:8880/box')
       let msgs = []
-      samo.onopen = async () => {
-        await samo.publish('box', state[0]) // create
-        await samo.publish('box', state[1]) // update
-        await samo.unpublish('box') // delete
+      client.onopen = async () => {
+        await client.publish('box', state[0]) // create
+        await client.publish('box', state[1]) // update
+        await client.unpublish('box') // delete
       }
-      samo.onmessage = (msg) => { // read
+      client.onmessage = (msg) => { // read
         msgs.push(copy(msg))
         if (msgs.length === 4) {
-          samo.close()
+          client.close()
           resolve(msgs)
         }
       }
-      samo.onerror = (err) => {
-        samo.close()
+      client.onerror = (err) => {
+        client.close()
         reject(err)
       }
     }), state)
@@ -59,22 +59,22 @@ describe('Samo', () => {
     ]
     const result = await page.evaluate((state) => new Promise(async (resolve, reject) => {
       const copy = (a) => JSON.parse(JSON.stringify(a))
-      const samo = Samo('localhost:8880/box/*')
+      const client = Katamari('localhost:8880/box/*')
       let msgs = []
-      samo.onopen = async () => {
-        const id = await samo.publish('box/*', state[0]) // create
-        await samo.publish('box/' + id, state[1]) // update
-        await samo.unpublish('box/' + id) // delete
+      client.onopen = async () => {
+        const id = await client.publish('box/*', state[0]) // create
+        await client.publish('box/' + id, state[1]) // update
+        await client.unpublish('box/' + id) // delete
       }
-      samo.onmessage = (msg) => { // read
+      client.onmessage = (msg) => { // read
         msgs.push(copy(msg))
         if (msgs.length === 4) {
-          samo.close()
+          client.close()
           resolve(msgs)
         }
       }
-      samo.onerror = (err) => {
-        samo.close()
+      client.onerror = (err) => {
+        client.close()
         reject(err)
       }
     }), state)
@@ -91,7 +91,7 @@ describe('Samo', () => {
   it('list delete', async () => {
     const result = await page.evaluate(() => new Promise(async (resolve, reject) => {
       const copy = (a) => JSON.parse(JSON.stringify(a))
-      const samo = Samo('localhost:8880/things/*')
+      const client = Katamari('localhost:8880/things/*')
       let msgs = []
       let ops = []
       let ids = []
@@ -99,25 +99,25 @@ describe('Samo', () => {
       for (let i = 0; i < samples; i++) {
         ops.push(i)
       }
-      samo.onopen = async () => {
+      client.onopen = async () => {
         for (let op of ops) {
-          let id = await samo.publish('things/*', { name: 'name' + op }) // create
+          let id = await client.publish('things/*', { name: 'name' + op }) // create
           ids.push(id)
         }
         for (let id of ids) {
-          await samo.publish('things/' + id, { name: 'name' + id }) // update
+          await client.publish('things/' + id, { name: 'name' + id }) // update
         }
-        await samo.unpublish('things/*') // delete
+        await client.unpublish('things/*') // delete
       }
-      samo.onmessage = (msg) => { // read
+      client.onmessage = (msg) => { // read
         msgs.push(copy(msg))
         if (msgs.length === samples * 2 + 2) {
-          samo.close()
+          client.close()
           resolve(msgs)
         }
       }
-      samo.onerror = (err) => {
-        samo.close()
+      client.onerror = (err) => {
+        client.close()
         reject(err)
       }
     }))
@@ -128,17 +128,17 @@ describe('Samo', () => {
   it('time', async () => {
     const result = await page.evaluate(() => new Promise(async (resolve, reject) => {
       const copy = (a) => JSON.parse(JSON.stringify(a))
-      const samo = Samo('localhost:8880')
+      const client = Katamari('localhost:8880')
       let msgs = []
-      samo.onmessage = (msg) => { // read
+      client.onmessage = (msg) => { // read
         msgs.push(copy(msg))
         if (msgs.length === 2) {
-          samo.close()
+          client.close()
           resolve(msgs)
         }
       }
-      samo.onerror = (err) => {
-        samo.close()
+      client.onerror = (err) => {
+        client.close()
         reject(err)
       }
     }))
@@ -148,23 +148,23 @@ describe('Samo', () => {
 
   it('reconnect', async () => {
     const result = await page.evaluate(() => new Promise(async (resolve, reject) => {
-      const samo = Samo('localhost:8880/test')
+      const client = Katamari('localhost:8880/test')
       let open = []
-      samo.onopen = () => {
+      client.onopen = () => {
         open.push(true)
         if (open.length === 2) {
-          open.push(samo.ws.url)
-          samo.close()
+          open.push(client.ws.url)
+          client.close()
           resolve(open)
         }
       }
-      samo.onmessage = (msg) => { // read
+      client.onmessage = (msg) => { // read
         if (open.length === 1) {
-          samo.close(true)
+          client.close(true)
         }
       }
-      samo.onerror = (err) => {
-        samo.close()
+      client.onerror = (err) => {
+        client.close()
         reject(err)
       }
     }))
@@ -174,17 +174,17 @@ describe('Samo', () => {
 
   it('lifecycle', async () => {
     const result = await page.evaluate(() => new Promise(async (resolve, reject) => {
-      const samo = Samo('localhost:8880/test')
+      const client = Katamari('localhost:8880/test')
       let open = []
-      samo.onopen = () => {
+      client.onopen = () => {
         open.push(true)
         if (open.length === 2) {
-          open.push(samo.ws.url)
-          samo.close()
+          open.push(client.ws.url)
+          client.close()
           resolve(open)
         }
       }
-      samo.onmessage = (msg) => { // read
+      client.onmessage = (msg) => { // read
         if (open.length === 1) {
           document.dispatchEvent(new Event('freeze'))
           setTimeout(() => {
@@ -192,8 +192,8 @@ describe('Samo', () => {
           }, 300)
         }
       }
-      samo.onerror = (err) => {
-        samo.close()
+      client.onerror = (err) => {
+        client.close()
         reject(err)
       }
     }))
@@ -203,16 +203,16 @@ describe('Samo', () => {
 
   it('keys', async () => {
     const result = await page.evaluate(() => new Promise(async (resolve) => {
-      const samo = Samo()
-      samo.httpUrl = 'http://localhost:8880'
+      const client = Katamari()
+      client.httpUrl = 'http://localhost:8880'
       let result = []
-      let stats = await samo.stats()
+      let stats = await client.stats()
       result.push(stats.keys)
-      await samo.publish('box', { name: 'a box' }) // create
-      stats = await samo.stats()
+      await client.publish('box', { name: 'a box' }) // create
+      stats = await client.stats()
       result.push(stats.keys)
-      await samo.unpublish('box') // delete
-      stats = await samo.stats()
+      await client.unpublish('box') // delete
+      stats = await client.stats()
       result.push(stats.keys)
       resolve(result)
     }))
@@ -225,24 +225,24 @@ describe('Samo', () => {
 
   it('get', async () => {
     const result = await page.evaluate(() => new Promise(async (resolve) => {
-      const samo = Samo()
-      samo.httpUrl = 'http://localhost:8880'
+      const client = Katamari()
+      client.httpUrl = 'http://localhost:8880'
       let result = []
-      let items = await samo.get('*')
+      let items = await client.get('*')
       result.push(items)
-      await samo.publish('box', { name: 'a box' }) // create
-      items = await samo.get('*')
+      await client.publish('box', { name: 'a box' }) // create
+      items = await client.get('*')
       result.push(items)
-      await samo.unpublish('box') // delete
-      items = await samo.get('*')
+      await client.unpublish('box') // delete
+      items = await client.get('*')
       result.push(items)
-      await samo.publish('box/1/things/1', { name: 'a thing in box 1' }) // create
-      items = await samo.get('box/*/things/*')
+      await client.publish('box/1/things/1', { name: 'a thing in box 1' }) // create
+      items = await client.get('box/*/things/*')
       result.push(items)
-      await samo.publish('box/2/things/0', { name: 'a thing in box 2' }) // create
-      items = await samo.get('box/*/things/*')
+      await client.publish('box/2/things/0', { name: 'a thing in box 2' }) // create
+      items = await client.get('box/*/things/*')
       result.push(items)
-      items = await samo.get('box/2/things/0')
+      items = await client.get('box/2/things/0')
       result.push(items)
       resolve(result)
     }))

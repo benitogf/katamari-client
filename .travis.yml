@@ -12,7 +12,7 @@ services:
   - xvfb
 
 install:
-  - go get github.com/benitogf/samo
+  - go get github.com/benitogf/katamari
   - npm install
 
 script:

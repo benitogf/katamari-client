@@ -1,9 +1,9 @@
 package main
 
-import "github.com/benitogf/samo"
+import "github.com/benitogf/katamari"
 
 func main() {
-	app := samo.Server{}
+	app := katamari.Server{}
 	app.ForcePatch = true
 	app.Start("localhost:8880")
 	app.WaitClose()
