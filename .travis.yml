@@ -1,7 +1,5 @@
 language: go
 
-sudo: required
-
 os:
   - linux
 
@@ -9,11 +7,10 @@ go:
   - 1.14.x
 
 env:
-  - NODE_VERSION="0.12"
+  - NODE_VERSION="0.11"
 
 before_install:
   - nvm install $NODE_VERSION
-  - sudo ln -s /home/travis/.nvm/versions/node/v0.12.18/include/node /usr/local/include/node
 
 addons:
   chrome: stable
