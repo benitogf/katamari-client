@@ -7,7 +7,7 @@ go:
   - 1.14.x
 
 env:
-  - NODE_VERSION="0.14"
+  - NODE_VERSION="0.12"
 
 before_install:
   - nvm install $NODE_VERSION
