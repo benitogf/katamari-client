@@ -3,7 +3,10 @@ os:
   - linux
 
 go:
-  - 1.11.x
+  - 1.14.x
+
+node_js:
+- node
 
 addons:
   chrome: stable
