@@ -1,6 +1,6 @@
 {
   "name": "katamari-client",
-  "version": "6.0.8",
+  "version": "6.0.9",
   "description": "js client for katamari",
   "main": "katamari.js",
   "typings": "katamari.d.ts",
@@ -17,8 +17,8 @@
   "license": "MIT",
   "dependencies": {
     "fast-json-patch": "^3.0.0-1",
-    "js-base64": "^2.6.1",
-    "ky": "^0.20.0"
+    "js-base64": "^3.1.0",
+    "ky": "^0.21.0"
   },
   "devDependencies": {
     "express": "^4.17.1",
