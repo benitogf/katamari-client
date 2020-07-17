@@ -6,8 +6,11 @@ os:
 go:
   - 1.14.x
 
+env:
+  - NODE_VERSION="0.14"
+
 before_install:
-  - npm i -g npm
+  - nvm install $NODE_VERSION
 
 addons:
   chrome: stable
