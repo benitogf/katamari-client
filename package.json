@@ -1,6 +1,6 @@
 {
   "name": "katamari-client",
-  "version": "6.0.8",
+  "version": "6.0.9",
   "description": "js client for katamari",
   "main": "katamari.js",
   "typings": "katamari.d.ts",
@@ -17,16 +17,16 @@
   "license": "MIT",
   "dependencies": {
     "fast-json-patch": "^3.0.0-1",
-    "js-base64": "^2.6.1",
-    "ky": "^0.20.0"
+    "js-base64": "^3.4.5",
+    "ky": "^0.23.0"
   },
   "devDependencies": {
     "express": "^4.17.1",
-    "jasmine": "^3.5.0",
+    "jasmine": "^3.6.1",
     "jasmine-console-reporter": "^3.1.0",
     "ps-tree": "^1.2.0",
-    "puppeteer": "^4.0.0",
-    "rollup": "^2.18.0",
+    "puppeteer": "^5.2.1",
+    "rollup": "^2.21.0",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-node-resolve": "^5.2.0"
   }
