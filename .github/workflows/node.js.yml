@@ -1,0 +1,25 @@
+on: [pull_request]
+name: Test
+jobs:
+  test:
+    strategy:
+      matrix:
+        node-version: [10.x, 12.x, 14.x, 15.x]
+        go-version: [1.15.x, 1.16.x]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Install Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go-version }}
+    - name: install go lib
+      run: go get github.com/benitogf/katamari
+    - name: npm install
+      run: npm install
+    - name: test
+      run: npm test
