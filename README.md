@@ -1,10 +1,6 @@
 # katamari-client
 
-[![Build Status][build-image]][build-url]
-
-
-[build-url]: https://travis-ci.com/benitogf/katamari-client
-[build-image]: https://api.travis-ci.com/benitogf/katamari-client.svg?branch=master&style=flat-square
+[![Test](https://github.com/benitogf/katamari-client/actions/workflows/test.yml/badge.svg)](https://github.com/benitogf/katamari-client/actions/workflows/test.yml)
 
 [![npm][npm-image]][npm-url]
 
