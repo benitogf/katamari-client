@@ -17,6 +17,8 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go-version }}
+    - name: Checkout code
+      uses: actions/checkout@v2
     - name: install go lib
       run: go get github.com/benitogf/katamari
     - name: npm install
