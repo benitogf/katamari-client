@@ -6,7 +6,7 @@ const Jasmine = require('jasmine')
 const JasmineConsoleReporter = require('jasmine-console-reporter')
 const express = require('express')
 
-let startSamo = false
+let startServer = false
 let buildDone = false
 
 // https://github.com/nodejs/node/issues/3617#issuecomment-377731194
@@ -28,20 +28,20 @@ build.stdout.on('close', () => {
   }
 })
 
-const samo = spawn('go', ['run', 'main.go'])
-samo.stdout.on('data', (data) => {
-  if (!startSamo) {
+const server = spawn('go', ['run', 'main.go'])
+server.stdout.on('data', (data) => {
+  if (!startServer) {
     console.log(`${data}`)
-    startSamo = true
+    startServer = true
   }
 })
 
 const app = express()
 app.use(express.static(__dirname))
-const server = app.listen(9468)
+const htmlServer = app.listen(9468)
 
 const spin = setInterval(() => {
-  if (startSamo && server && buildDone) {
+  if (startServer && htmlServer && buildDone) {
     clearInterval(spin)
     // setup Jasmine
     const jasmine = new Jasmine()
@@ -72,14 +72,14 @@ const spin = setInterval(() => {
     jasmine.addReporter(reporter)
     jasmine.execute()
     jasmine.onComplete(() => {
-      server.close()
-      kill(samo.pid)
+      htmlServer.close()
+      kill(server.pid)
     })
   }
 }, 10)
 
 function exitHandler(options) {
-  if (options.cleanup) kill(samo.pid)
+  if (options.cleanup) kill(server.pid)
   if (options.exit) process.exit()
 }
 process.on('exit', exitHandler.bind(null, { cleanup: true }))

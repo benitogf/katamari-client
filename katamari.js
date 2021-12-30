@@ -35,7 +35,9 @@ const patch = (msg, cache) => {
   return applyPatch(cache, ops).newDocument
 }
 
-const _samo = {
+const noop = (_e) => {}
+
+const _katamari = {
   // cache
   cache: null,
   version: null,
@@ -59,13 +61,13 @@ const _samo = {
   bound: false,
   frozen: false,
   // Set up the default 'noop' event handlers
-  onopen: (event) => { },
-  onclose: (event) => { },
-  onconnecting: (event) => { },
-  onmessage: (data) => { },
-  onerror: (event) => { },
-  onfrozen: (event) => { },
-  onresume: (event) => { },
+  onopen: noop,
+  onclose: noop,
+  onconnecting: noop,
+  onmessage: noop,
+  onerror: noop,
+  onfrozen: noop,
+  onresume: noop,
 
   _time(event) {
     this.onmessage(binaryStringToInt(event.data))
@@ -187,15 +189,18 @@ const _samo = {
   }
 }
 export default function (url, ssl, protocols = []) {
-  let e = Object.assign({}, _samo)
+  let e = Object.assign({}, _katamari)
   if (url !== undefined) {
     let urlSplit = url.split('/')
     e.domain = urlSplit[0]
+    // single entry
     e.mode = 'sa'
     if (url.indexOf('*') !== -1) {
+      // entry list
       e.mode = 'mo'
     }
     if (urlSplit.length === 1) {
+      // clock
       e.mode = 'time'
     }
     let wsProtocol = ssl ? 'wss://' : 'ws://'
