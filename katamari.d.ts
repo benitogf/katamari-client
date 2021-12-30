@@ -1,8 +1,6 @@
-import { connect } from "net";
+declare function Katamari(url?: string, ssl?: boolean, protocols?: Array<string>): katamari.Katamari;
 
-declare function Samo(url?: string, ssl?: boolean, protocols?: Array<string>): samo.Samo;
-
-declare namespace samo {
+declare namespace katamari {
   type MessageData = Object | Array<any> | string | number
   type Entry = {
     data: MessageData,
@@ -14,7 +12,7 @@ declare namespace samo {
   type Stats = {
     keys: Array<string>
   }
-  interface Samo extends Object {
+  interface Katamari extends Object {
     cache: MessageData
     forcedClose: Boolean
     readyState: Number
@@ -41,4 +39,4 @@ declare namespace samo {
   }
 }
 
-export = Samo
+export = Katamari
