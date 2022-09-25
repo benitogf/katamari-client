@@ -1,6 +1,6 @@
 {
     "name": "katamari-client",
-    "version": "6.0.13",
+    "version": "6.0.14",
     "description": "js client for katamari",
     "main": "katamari.js",
     "typings": "katamari.d.ts",
